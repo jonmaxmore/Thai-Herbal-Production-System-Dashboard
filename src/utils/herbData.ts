@@ -148,6 +148,7 @@ export interface Trace {
     lat: number;
     lng: number;
   };
+  referenceCode?: string;
 }
 
 // Generate random farm name
@@ -179,17 +180,29 @@ export function generateFarmers(count = 100): Farm[] {
 
 // Generate random traces
 export function generateTraces(count = 100): Trace[] {
-  const events = ["Harvested", "Processed", "Packaged", "Shipped"];
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    herb: herbList[Math.floor(Math.random() * herbList.length)],
-    event: events[Math.floor(Math.random() * events.length)],
-    timestamp: new Date().toISOString(),
-    location: {
-      lat: 13 + Math.random() * 2,
-      lng: 100 + Math.random() * 2,
-    }
-  }));
+  const events = ["Seeding", "Growing", "Harvesting", "Drying", "Processing", "Testing", "Packaging", "Shipping", "Delivered"];
+  const traces: Trace[] = [];
+  
+  for (let i = 1; i <= count; i++) {
+    const herb = herbList[Math.floor(Math.random() * herbList.length)];
+    const event = events[Math.floor(Math.random() * events.length)];
+    const timestamp = new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)).toISOString(); // Random date in the last 30 days
+    const refCode = `TH-${Math.floor(1000 + Math.random() * 9000)}-${event.substring(0, 3).toUpperCase()}`;
+    
+    traces.push({
+      id: i,
+      herb,
+      event,
+      timestamp,
+      location: {
+        lat: 13 + Math.random() * 2,
+        lng: 100 + Math.random() * 2,
+      },
+      referenceCode: refCode
+    });
+  }
+  
+  return traces;
 }
 
 // Calculate status counts
