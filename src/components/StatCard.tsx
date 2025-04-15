@@ -1,15 +1,17 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
   value: number | string;
   icon?: React.ReactNode;
+  className?: string;
 }
 
-export default function StatCard({ title, value, icon }: StatCardProps) {
+export default function StatCard({ title, value, icon, className }: StatCardProps) {
   return (
-    <Card>
+    <Card className={cn(className)}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div>
