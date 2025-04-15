@@ -7,7 +7,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Leaf, Users, ClipboardCheck, AlertTriangle, Search } from "lucide-react";
+import { Leaf, Users, ClipboardCheck, AlertTriangle, Search, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import HerbSidebar from "./HerbSidebar";
 import StatusBadge from "./StatusBadge";
@@ -19,7 +20,7 @@ import MapView from "./MapView";
 
 import { 
   herbList, getHerbImage, generateFarmers, generateTraces, 
-  calculateStatusCounts, Farm, Trace 
+  calculateStatusCounts, Farm, Trace, CertificationStatus
 } from "@/utils/herbData";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -29,6 +30,7 @@ export default function HerbDashboard() {
   const [farmers] = useState<Farm[]>(generateFarmers(100));
   const [traces] = useState<Trace[]>(generateTraces(100));
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CertificationStatus | "All">("All");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -36,6 +38,31 @@ export default function HerbDashboard() {
   const filteredHerbs = searchTerm
     ? herbList.filter(herb => herb.toLowerCase().includes(searchTerm.toLowerCase()))
     : herbList;
+
+  // Filter farmers based on search term and status filter
+  const filteredFarmers = farmers.filter(farmer => {
+    const matchesSearch = searchTerm 
+      ? farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        farmer.herb.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+    
+    const matchesStatus = statusFilter !== "All" 
+      ? farmer.gapc === statusFilter || 
+        farmer.euGmp === statusFilter || 
+        farmer.dttm === statusFilter || 
+        farmer.tis === statusFilter
+      : true;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Filter traces based on search term
+  const filteredTraces = traces.filter(trace => {
+    return searchTerm 
+      ? trace.herb.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        trace.event.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+  });
 
   // Certification counts
   const gapcStatus = calculateStatusCounts(farmers, "gapc");
@@ -250,7 +277,7 @@ export default function HerbDashboard() {
             </div>
           )}
 
-          {/* Trace View */}
+          {/* Trace View with Search */}
           {activeTab === "trace" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold hidden md:block">Traceability Records</h2>
@@ -259,7 +286,7 @@ export default function HerbDashboard() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   className="pl-10"
-                  placeholder="Search traces..."
+                  placeholder="Search traces by herb or event..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -279,22 +306,15 @@ export default function HerbDashboard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {traces
-                          .filter(trace => searchTerm ? 
-                            trace.herb.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            trace.event.toLowerCase().includes(searchTerm.toLowerCase()) 
-                            : true
-                          )
-                          .map(trace => (
-                            <TableRow key={trace.id}>
-                              <TableCell>{trace.id}</TableCell>
-                              <TableCell>{trace.herb}</TableCell>
-                              <TableCell>{trace.event}</TableCell>
-                              <TableCell>{new Date(trace.timestamp).toLocaleString()}</TableCell>
-                              <TableCell>{trace.location.lat.toFixed(3)}, {trace.location.lng.toFixed(3)}</TableCell>
-                            </TableRow>
-                          ))
-                        }
+                        {filteredTraces.map(trace => (
+                          <TableRow key={trace.id}>
+                            <TableCell>{trace.id}</TableCell>
+                            <TableCell>{trace.herb}</TableCell>
+                            <TableCell>{trace.event}</TableCell>
+                            <TableCell>{new Date(trace.timestamp).toLocaleString()}</TableCell>
+                            <TableCell>{trace.location.lat.toFixed(3)}, {trace.location.lng.toFixed(3)}</TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
@@ -303,19 +323,40 @@ export default function HerbDashboard() {
             </div>
           )}
 
-          {/* Certification View */}
+          {/* Certification View with Search and Filter */}
           {activeTab === "certification" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold hidden md:block">Certified Farmers</h2>
               
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  className="pl-10"
-                  placeholder="Search farmers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    className="pl-10"
+                    placeholder="Search farmers by name or herb..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-gray-400" />
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) => setStatusFilter(value as CertificationStatus | "All")}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Statuses</SelectItem>
+                      <SelectItem value="Passed">Passed</SelectItem>
+                      <SelectItem value="Failed">Failed</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Card>
@@ -334,24 +375,17 @@ export default function HerbDashboard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {farmers
-                          .filter(farmer => searchTerm ? 
-                            farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            farmer.herb.toLowerCase().includes(searchTerm.toLowerCase()) 
-                            : true
-                          )
-                          .map(farmer => (
-                            <TableRow key={farmer.id}>
-                              <TableCell>{farmer.id}</TableCell>
-                              <TableCell>{farmer.name}</TableCell>
-                              <TableCell>{farmer.herb}</TableCell>
-                              <TableCell><StatusBadge status={farmer.gapc} /></TableCell>
-                              <TableCell><StatusBadge status={farmer.euGmp} /></TableCell>
-                              <TableCell><StatusBadge status={farmer.dttm} /></TableCell>
-                              <TableCell><StatusBadge status={farmer.tis} /></TableCell>
-                            </TableRow>
-                          ))
-                        }
+                        {filteredFarmers.map(farmer => (
+                          <TableRow key={farmer.id}>
+                            <TableCell>{farmer.id}</TableCell>
+                            <TableCell>{farmer.name}</TableCell>
+                            <TableCell>{farmer.herb}</TableCell>
+                            <TableCell><StatusBadge status={farmer.gapc} /></TableCell>
+                            <TableCell><StatusBadge status={farmer.euGmp} /></TableCell>
+                            <TableCell><StatusBadge status={farmer.dttm} /></TableCell>
+                            <TableCell><StatusBadge status={farmer.tis} /></TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
