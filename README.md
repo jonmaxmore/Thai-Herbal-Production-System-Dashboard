@@ -1,7 +1,11 @@
-
 # Thai Herbal Production System
 
-## Project info
+## Project Information
+
+**Powered by:** Predictive AI Solutions Co., Ltd.
+**Developed by:** Predictive AI Solutions Co., Ltd.
+
+## Project Details
 
 **URL**: https://lovable.dev/projects/8f8e97aa-445a-46b0-8d7c-8c40e0d5d0db
 
