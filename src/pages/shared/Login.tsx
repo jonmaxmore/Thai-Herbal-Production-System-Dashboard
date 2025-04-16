@@ -25,7 +25,7 @@ export default function Login() {
         // Simple validation for demo purposes
         toast({
           title: "Login successful",
-          description: "Welcome to HerbTrace platform",
+          description: "Welcome to Thai Herbal Production System",
         });
         navigate("/herb-trace/dashboard");
       } else {
@@ -47,7 +47,7 @@ export default function Login() {
               <Leaf className="h-6 w-6 text-herb" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">HerbTrace Platform</CardTitle>
+          <CardTitle className="text-2xl text-center">Thai Herbal Production System</CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access the platform
           </CardDescription>

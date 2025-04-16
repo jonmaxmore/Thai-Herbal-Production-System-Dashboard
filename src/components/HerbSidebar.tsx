@@ -40,7 +40,7 @@ export default function HerbSidebar({
     <div className="w-64 p-4 bg-white border-r h-screen space-y-6 shadow-md">
       <div className="flex items-center gap-2 px-2 mb-6">
         <Leaf className="h-6 w-6 text-herb" />
-        <h1 className="text-xl font-bold">HerbTrace</h1>
+        <h1 className="text-xl font-bold">Thai Herbal Production System</h1>
       </div>
 
       <nav className="space-y-1">
@@ -65,7 +65,7 @@ export default function HerbSidebar({
         <div className="flex flex-col gap-2">
           <div className="px-3 py-2">
             <p className="text-xs text-gray-500">Powered by</p>
-            <p className="text-sm font-medium">HerbTrace Platform</p>
+            <p className="text-sm font-medium">Thai Herbal Production System</p>
           </div>
         </div>
       </div>

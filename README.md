@@ -1,4 +1,5 @@
-# Welcome to your Lovable project
+
+# Thai Herbal Production System
 
 ## Project info
 

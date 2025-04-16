@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Leaf, Users, ClipboardCheck, AlertTriangle } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
@@ -18,7 +19,7 @@ export default function HerbTraceDashboard() {
   return (
     <HerbTraceLayout activeTab="dashboard">
       <div className="space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold hidden md:block text-green-800">Herb Trace Dashboard</h2>
+        <h2 className="text-2xl font-bold hidden md:block text-green-800">Thai Herbal Production System Dashboard</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
