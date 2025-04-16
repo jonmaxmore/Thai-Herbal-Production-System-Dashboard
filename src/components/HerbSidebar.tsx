@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, Leaf, Search, ClipboardList, Settings, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,17 +17,20 @@ export default function HerbSidebar({
   isMobile = false,
   setIsMobileMenuOpen
 }: SidebarProps) {
+  const navigate = useNavigate();
+  
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'herbs', label: 'Herbs', icon: Leaf },
-    { id: 'trace', label: 'Trace', icon: Search },
-    { id: 'certification', label: 'Certification', icon: ClipboardList },
-    { id: 'map', label: 'Map', icon: MapPin },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/herb-trace/dashboard' },
+    { id: 'herbs', label: 'Herbs', icon: Leaf, path: '/herb-trace/herbs' },
+    { id: 'trace', label: 'Trace', icon: Search, path: '/herb-trace/trace' },
+    { id: 'certification', label: 'Certification', icon: ClipboardList, path: '/herb-trace/certification' },
+    { id: 'map', label: 'Map', icon: MapPin, path: '/herb-trace/map' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/herb-trace/settings' },
   ];
 
-  const handleTabChange = (tabId: string) => {
+  const handleTabChange = (tabId: string, path: string) => {
     setActiveTab(tabId);
+    navigate(path);
     if (isMobile && setIsMobileMenuOpen) {
       setIsMobileMenuOpen(false);
     }
@@ -49,7 +53,7 @@ export default function HerbSidebar({
                 ? "bg-herb-light text-herb-dark"
                 : "text-gray-600 hover:bg-gray-100"
             )}
-            onClick={() => handleTabChange(item.id)}
+            onClick={() => handleTabChange(item.id, item.path)}
           >
             <item.icon className="h-5 w-5" />
             <span>{item.label}</span>
