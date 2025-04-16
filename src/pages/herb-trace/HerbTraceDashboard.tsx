@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Leaf, Users, ClipboardCheck, AlertTriangle } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
-import StatCard from "@/components/ui/StatCard";
+import StatCard from "@/components/StatCard";
 import { herbList, generateFarmers, generateTraces, calculateStatusCounts } from "@/utils/herbData";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
