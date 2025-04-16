@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import TraceabilityView from "./pages/herb-trace/TraceabilityView";
 import CertificationView from "./pages/herb-trace/CertificationView";
 import MapViewPage from "./pages/herb-trace/MapView";
 import SettingsView from "./pages/herb-trace/SettingsView";
+import Marketplace from "./pages/herb-trace/Marketplace";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +37,7 @@ const App = () => (
           <Route path="/herb-trace/certification" element={<CertificationView />} />
           <Route path="/herb-trace/map" element={<MapViewPage />} />
           <Route path="/herb-trace/settings" element={<SettingsView />} />
+          <Route path="/herb-trace/marketplace" element={<Marketplace />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
