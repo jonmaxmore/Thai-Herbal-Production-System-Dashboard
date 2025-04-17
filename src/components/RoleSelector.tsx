@@ -1,813 +1,288 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Shield, 
-  Users, 
-  Leaf, 
-  ClipboardCheck, 
-  ShoppingCart, 
-  User, 
-  UserCog,
-  Microscope,
-  UserCheck,
-  FileText,
-  LayoutDashboard,
-  Map,
-  Book,
-  Activity,
-  PackageSearch,
-  TrendingUp,
-  Database,
-  Gavel,
-  Truck
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { RoleAccess } from "@/hooks/use-role-access";
 
-export type UserRole = 
-  | "AGRICULTURE" 
-  | "TRAD_MED" 
-  | "STANDARDS" 
-  | "PLATFORM_OWNER"
-  | "GENERAL_PUBLIC"
-  | "MARKET_PLACE"
-  | "MEMBER_MAIN"
-  | "MEMBER_PUBLIC"
-  | "FARMER"
-  | "INSPECTOR"
-  | "ADMIN"
-  | "LABORATORY"
-  | "MANUFACTURER"
-  | "DATA_CONSUMER"
-  | "CUSTOMS";
-
-interface PageAccess {
-  view: boolean;
-  edit: boolean;
-  approve: boolean;
+// Define the possible roles
+export enum UserRole {
+  FARMER = "farmer",
+  LAB = "lab",
+  MANUFACTURER = "manufacturer",
+  TTM_OFFICER = "ttm_officer",
+  ACFS_OFFICER = "acfs_officer",
+  CUSTOMS_OFFICER = "customs_officer",
+  ADMIN = "admin",
+  DATA_CONSUMER = "data_consumer",
+  GUEST = "guest",
 }
 
-interface RoleAccess {
-  dashboard: PageAccess;
-  herbs: PageAccess;
-  trace: PageAccess;
-  certification: PageAccess;
-  map: PageAccess;
-  settings: PageAccess;
-  marketplace: PageAccess;
-  farms: PageAccess;
-  activities: PageAccess;
-  harvest: PageAccess;
-  weather: PageAccess;
-  reports: PageAccess;
-  learning: PageAccess;
-  policy: PageAccess;
-  licenses: PageAccess;
-  inspection: PageAccess;
-  training: PageAccess;
-  lab_samples: PageAccess;
-  lab_testing: PageAccess;
-  lab_materials: PageAccess;
-  procurement: PageAccess;
-  production: PageAccess;
-  inventory: PageAccess;
-  logistics: PageAccess;
-  qrcode: PageAccess;
-  users: PageAccess;
-  content: PageAccess;
-  marketing: PageAccess;
-  support: PageAccess;
-  data_catalog: PageAccess;
-  api: PageAccess;
-  exports: PageAccess;
-  tariffs: PageAccess;
-  regulations: PageAccess;
-  b2b: PageAccess;
-  contracts: PageAccess;
-}
+// When setting up access rights for a role, we need to ensure all PageType properties are defined
+const setupRoleAccess = (role: UserRole): RoleAccess => {
+  // Default access - view only for dashboard
+  const baseAccess: RoleAccess = {
+    dashboard: { view: true, edit: false, approve: false },
+    herbs: { view: false, edit: false, approve: false },
+    trace: { view: false, edit: false, approve: false },
+    certification: { view: false, edit: false, approve: false },
+    map: { view: false, edit: false, approve: false },
+    settings: { view: false, edit: false, approve: false },
+    marketplace: { view: false, edit: false, approve: false },
+    // Initialize all new page types
+    farms: { view: false, edit: false, approve: false },
+    activities: { view: false, edit: false, approve: false },
+    harvest: { view: false, edit: false, approve: false },
+    weather: { view: false, edit: false, approve: false },
+    reports: { view: false, edit: false, approve: false },
+    learning: { view: false, edit: false, approve: false },
+    policy: { view: false, edit: false, approve: false },
+    licenses: { view: false, edit: false, approve: false },
+    inspection: { view: false, edit: false, approve: false },
+    training: { view: false, edit: false, approve: false },
+    lab_samples: { view: false, edit: false, approve: false },
+    lab_testing: { view: false, edit: false, approve: false },
+    lab_materials: { view: false, edit: false, approve: false },
+    procurement: { view: false, edit: false, approve: false },
+    production: { view: false, edit: false, approve: false },
+    inventory: { view: false, edit: false, approve: false },
+    logistics: { view: false, edit: false, approve: false },
+    qrcode: { view: false, edit: false, approve: false },
+    users: { view: false, edit: false, approve: false },
+    content: { view: false, edit: false, approve: false },
+    marketing: { view: false, edit: false, approve: false },
+    support: { view: false, edit: false, approve: false },
+    data_catalog: { view: false, edit: false, approve: false },
+    api: { view: false, edit: false, approve: false },
+    exports: { view: false, edit: false, approve: false },
+    tariffs: { view: false, edit: false, approve: false },
+    regulations: { view: false, edit: false, approve: false },
+    b2b: { view: false, edit: false, approve: false },
+    contracts: { view: false, edit: false, approve: false }
+  };
 
-const roles: {
-  id: UserRole;
-  name: string;
-  description: string;
-  icon: React.ElementType;
-  route: string;
-  access: RoleAccess;
-  category: string;
-}[] = [
-  {
-    id: "FARMER",
-    name: "เกษตรกรผู้ปลูกสมุนไพร",
-    description: "Herb growers who manage farms and production",
-    icon: Leaf,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ผลิตและผู้ประกอบการ",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: true, approve: false },
-      trace: { view: true, edit: true, approve: false },
-      certification: { view: true, edit: true, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: true, approve: false },
-      farms: { view: true, edit: true, approve: false },
-      activities: { view: true, edit: true, approve: false },
-      harvest: { view: true, edit: true, approve: false },
-      weather: { view: true, edit: false, approve: false },
-      reports: { view: true, edit: false, approve: false },
-      learning: { view: true, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: false, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: true, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: true, edit: true, approve: true },
-      inventory: { view: true, edit: true, approve: false },
-      logistics: { view: true, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: false, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "AGRICULTURE",
-    name: "กรมการแพทย์แผนไทย",
-    description: "Thai Traditional Medicine Department oversight",
-    icon: Leaf,
-    route: "/herb-trace/dashboard",
-    category: "หน่วยงานรัฐบาล",
-    access: {
-      dashboard: { view: true, edit: true, approve: false },
-      herbs: { view: true, edit: true, approve: true },
-      trace: { view: true, edit: true, approve: true },
-      certification: { view: true, edit: true, approve: true },
-      map: { view: true, edit: true, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      farms: { view: true, edit: false, approve: true },
-      policy: { view: true, edit: true, approve: true },
-      licenses: { view: true, edit: true, approve: true },
-      inspection: { view: true, edit: true, approve: true },
-      training: { view: true, edit: true, approve: true },
-      activities: { view: true, edit: false, approve: false },
-      harvest: { view: true, edit: false, approve: false },
-      weather: { view: true, edit: false, approve: false },
-      reports: { view: true, edit: true, approve: true },
-      learning: { view: true, edit: true, approve: true },
-      lab_samples: { view: true, edit: false, approve: false },
-      lab_testing: { view: true, edit: false, approve: true },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: true, edit: false, approve: true },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: true, edit: true, approve: true },
-      content: { view: true, edit: true, approve: true },
-      marketing: { view: true, edit: true, approve: false },
-      support: { view: true, edit: true, approve: false },
-      data_catalog: { view: true, edit: true, approve: true },
-      api: { view: true, edit: false, approve: false },
-      exports: { view: true, edit: true, approve: true },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: true, edit: true, approve: true },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "STANDARDS",
-    name: "มกอช.",
-    description: "สำนักงานมาตรฐานสินค้าเกษตรและอาหารแห่งชาติ",
-    icon: Shield,
-    route: "/herb-trace/dashboard",
-    category: "หน่วยงานรัฐบาล",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: true, approve: true },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      inspection: { view: true, edit: true, approve: true },
-      policy: { view: true, edit: true, approve: true },
-      licenses: { view: true, edit: true, approve: true },
-      training: { view: true, edit: false, approve: false },
-      lab_samples: { view: true, edit: false, approve: false },
-      lab_testing: { view: true, edit: false, approve: true },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: true, edit: false, approve: true },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: true, edit: true, approve: false },
-      content: { view: true, edit: true, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: true, edit: true, approve: false },
-      data_catalog: { view: true, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: true, edit: false, approve: true },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: true, edit: true, approve: true },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "LABORATORY",
-    name: "ห้องปฏิบัติการ",
-    description: "ห้องปฏิบัติการตรวจวิเคราะห์สมุนไพร",
-    icon: Microscope,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ให้บริการและผู้ประกอบการ",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: true, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      lab_samples: { view: true, edit: true, approve: true },
-      lab_testing: { view: true, edit: true, approve: true },
-      lab_materials: { view: true, edit: true, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      farms: { view: true, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      learning: { view: true, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: true },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: true, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: true, edit: true, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: false, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "MANUFACTURER",
-    name: "ผู้ประกอบการ",
-    description: "ผู้ผลิตและแปรรูปสมุนไพร",
-    icon: PackageSearch,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ผลิตและผู้ประกอบการ",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: true, approve: false },
-      certification: { view: true, edit: true, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: true, approve: false },
-      procurement: { view: true, edit: true, approve: false },
-      production: { view: true, edit: true, approve: true },
-      inventory: { view: true, edit: true, approve: false },
-      logistics: { view: true, edit: true, approve: false },
-      qrcode: { view: true, edit: true, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      farms: { view: true, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      learning: { view: true, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: true, edit: false, approve: false },
-      lab_samples: { view: true, edit: true, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: true, edit: true, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: true, edit: true, approve: false },
-      tariffs: { view: true, edit: false, approve: false },
-      regulations: { view: true, edit: false, approve: false },
-      b2b: { view: true, edit: true, approve: false },
-      contracts: { view: true, edit: true, approve: false }
-    }
-  },
-  {
-    id: "INSPECTOR",
-    name: "ผู้ตรวจประเมิน",
-    description: "ผู้ตรวจประเมินมาตรฐาน",
-    icon: ClipboardCheck,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ให้บริการและผู้ประกอบการ",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: true, approve: true },
-      certification: { view: true, edit: true, approve: true },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      inspection: { view: true, edit: true, approve: true },
-      farms: { view: true, edit: false, approve: true },
-      activities: { view: true, edit: false, approve: false },
-      harvest: { view: true, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      learning: { view: true, edit: false, approve: false },
-      policy: { view: true, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: false },
-      training: { view: true, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: true, edit: false, approve: true },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: true, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "CUSTOMS",
-    name: "กรมศุลกากร",
-    description: "กรมศุลกากรสำหรับการส่งออก",
-    icon: FileText,
-    route: "/herb-trace/dashboard",
-    category: "หน่วยงานรัฐบาล",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      exports: { view: true, edit: true, approve: true },
-      tariffs: { view: true, edit: true, approve: true },
-      regulations: { view: true, edit: true, approve: true },
-      farms: { view: false, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      learning: { view: false, edit: false, approve: false },
-      policy: { view: true, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: true },
-      inspection: { view: true, edit: false, approve: false },
-      training: { view: false, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: true, edit: false, approve: true },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "DATA_CONSUMER",
-    name: "ผู้ใช้ข้อมูล",
-    description: "บริษัท/รัฐบาลที่ซื้อข้อมูล",
-    icon: Database,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ใช้ข้อมูลและผู้บริโภค",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      data_catalog: { view: true, edit: false, approve: false },
-      api: { view: true, edit: false, approve: false },
-      reports: { view: true, edit: false, approve: false },
-      farms: { view: false, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      learning: { view: false, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: false, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: false, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: false, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "MARKET_PLACE",
-    name: "ตลาดกลาง",
-    description: "ตลาดกลางซื้อขายสมุนไพร",
-    icon: ShoppingCart,
-    route: "/herb-trace/marketplace",
-    category: "ผู้ให้บริการและผู้ประกอบการ",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: true, approve: true },
-      b2b: { view: true, edit: true, approve: true },
-      farms: { view: true, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      learning: { view: false, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: false, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: true, edit: true, approve: false },
-      logistics: { view: true, edit: true, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: true, edit: true, approve: false },
-      marketing: { view: true, edit: true, approve: false },
-      support: { view: true, edit: true, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: false, edit: false, approve: false },
-      contracts: { view: true, edit: true, approve: false }
-    }
-  },
-  {
-    id: "MEMBER_MAIN",
-    name: "ผู้ค้าสมุนไพร",
-    description: "ผู้ค้าในตลาด B2B",
-    icon: Gavel,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ใช้ข้อมูลและผู้บริโภค",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: true, edit: true, approve: false },
-      marketplace: { view: true, edit: true, approve: false },
-      b2b: { view: true, edit: true, approve: false },
-      contracts: { view: true, edit: true, approve: false },
-      farms: { view: true, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      reports: { view: true, edit: false, approve: false },
-      learning: { view: false, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: false, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: true, edit: true, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: true, edit: true, approve: false },
-      logistics: { view: true, edit: true, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: true, edit: true, approve: false },
-      tariffs: { view: true, edit: false, approve: false },
-      regulations: { view: true, edit: false, approve: false }
-    }
-  },
-  {
-    id: "GENERAL_PUBLIC",
-    name: "ประชาชนทั่วไป",
-    description: "ผู้ซื้อผลิตภัณฑ์สมุนไพร",
-    icon: User,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ใช้ข้อมูลและผู้บริโภค",
-    access: {
-      dashboard: { view: true, edit: false, approve: false },
-      herbs: { view: true, edit: false, approve: false },
-      trace: { view: true, edit: false, approve: false },
-      certification: { view: true, edit: false, approve: false },
-      map: { view: true, edit: false, approve: false },
-      settings: { view: false, edit: false, approve: false },
-      marketplace: { view: true, edit: false, approve: false },
-      farms: { view: false, edit: false, approve: false },
-      activities: { view: false, edit: false, approve: false },
-      harvest: { view: false, edit: false, approve: false },
-      weather: { view: false, edit: false, approve: false },
-      reports: { view: false, edit: false, approve: false },
-      learning: { view: true, edit: false, approve: false },
-      policy: { view: false, edit: false, approve: false },
-      licenses: { view: false, edit: false, approve: false },
-      inspection: { view: false, edit: false, approve: false },
-      training: { view: false, edit: false, approve: false },
-      lab_samples: { view: false, edit: false, approve: false },
-      lab_testing: { view: false, edit: false, approve: false },
-      lab_materials: { view: false, edit: false, approve: false },
-      procurement: { view: false, edit: false, approve: false },
-      production: { view: false, edit: false, approve: false },
-      inventory: { view: false, edit: false, approve: false },
-      logistics: { view: false, edit: false, approve: false },
-      qrcode: { view: false, edit: false, approve: false },
-      users: { view: false, edit: false, approve: false },
-      content: { view: false, edit: false, approve: false },
-      marketing: { view: false, edit: false, approve: false },
-      support: { view: false, edit: false, approve: false },
-      data_catalog: { view: false, edit: false, approve: false },
-      api: { view: false, edit: false, approve: false },
-      exports: { view: false, edit: false, approve: false },
-      tariffs: { view: false, edit: false, approve: false },
-      regulations: { view: false, edit: false, approve: false },
-      b2b: { view: false, edit: false, approve: false },
-      contracts: { view: false, edit: false, approve: false }
-    }
-  },
-  {
-    id: "PLATFORM_OWNER",
-    name: "ผู้ดูแลระบบ",
-    description: "ผู้ดูแลระบบและฝ่ายการตลาด",
-    icon: UserCog,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ดูแลระบบ",
-    access: {
-      dashboard: { view: true, edit: true, approve: false },
-      herbs: { view: true, edit: true, approve: false },
-      trace: { view: true, edit: true, approve: false },
-      certification: { view: true, edit: true, approve: false },
-      map: { view: true, edit: true, approve: false },
-      settings: { view: true, edit: true, approve: true },
-      marketplace: { view: true, edit: true, approve: true },
-      users: { view: true, edit: true, approve: true },
-      content: { view: true, edit: true, approve: true },
-      marketing: { view: true, edit: true, approve: true },
-      support: { view: true, edit: true, approve: true },
-      farms: { view: true, edit: false, approve: false },
-      activities: { view: true, edit: false, approve: false },
-      harvest: { view: true, edit: false, approve: false },
-      weather: { view: true, edit: false, approve: false },
-      reports: { view: true, edit: true, approve: false },
-      learning: { view: true, edit: true, approve: false },
-      policy: { view: true, edit: false, approve: false },
-      licenses: { view: true, edit: false, approve: false },
-      inspection: { view: true, edit: false, approve: false },
-      training: { view: true, edit: true, approve: false },
-      lab_samples: { view: true, edit: false, approve: false },
-      lab_testing: { view: true, edit: false, approve: false },
-      lab_materials: { view: true, edit: false, approve: false },
-      procurement: { view: true, edit: false, approve: false },
-      production: { view: true, edit: false, approve: false },
-      inventory: { view: true, edit: false, approve: false },
-      logistics: { view: true, edit: false, approve: false },
-      qrcode: { view: true, edit: false, approve: false },
-      data_catalog: { view: true, edit: true, approve: false },
-      api: { view: true, edit: true, approve: false },
-      exports: { view: true, edit: false, approve: false },
-      tariffs: { view: true, edit: false, approve: false },
-      regulations: { view: true, edit: false, approve: false },
-      b2b: { view: true, edit: true, approve: false },
-      contracts: { view: true, edit: false, approve: false }
-    }
-  },
-  {
-    id: "ADMIN",
-    name: "ผู้ดูแลระบบหลัก",
-    description: "ผู้ดูแลระบบระดับสูงสุด",
-    icon: UserCheck,
-    route: "/herb-trace/dashboard",
-    category: "ผู้ดูแลระบบ",
-    access: {
-      dashboard: { view: true, edit: true, approve: true },
-      herbs: { view: true, edit: true, approve: true },
-      trace: { view: true, edit: true, approve: true },
-      certification: { view: true, edit: true, approve: true },
-      map: { view: true, edit: true, approve: true },
-      settings: { view: true, edit: true, approve: true },
-      marketplace: { view: true, edit: true, approve: true },
-      farms: { view: true, edit: true, approve: true },
-      activities: { view: true, edit: true, approve: true },
-      harvest: { view: true, edit: true, approve: true },
-      weather: { view: true, edit: true, approve: true },
-      reports: { view: true, edit: true, approve: true },
-      learning: { view: true, edit: true, approve: true },
-      policy: { view: true, edit: true, approve: true },
-      licenses: { view: true, edit: true, approve: true },
-      inspection: { view: true, edit: true, approve: true },
-      training: { view: true, edit: true, approve: true },
-      lab_samples: { view: true, edit: true, approve: true },
-      lab_testing: { view: true, edit: true, approve: true },
-      lab_materials: { view: true, edit: true, approve: true },
-      procurement: { view: true, edit: true, approve: true },
-      production: { view: true, edit: true, approve: true },
-      inventory: { view: true, edit: true, approve: true },
-      logistics: { view: true, edit: true, approve: true },
-      qrcode: { view: true, edit: true, approve: true },
-      users: { view: true, edit: true, approve: true },
-      content: { view: true, edit: true, approve: true },
-      marketing: { view: true, edit: true, approve: true },
-      support: { view: true, edit: true, approve: true },
-      data_catalog: { view: true, edit: true, approve: true },
-      api: { view: true, edit: true, approve: true },
-      exports: { view: true, edit: true, approve: true },
-      tariffs: { view: true, edit: true, approve: true },
-      regulations: { view: true, edit: true, approve: true },
-      b2b: { view: true, edit: true, approve: true },
-      contracts: { view: true, edit: true, approve: true }
-    }
+  // Now set up role-specific access permissions
+  switch (role) {
+    case UserRole.FARMER:
+      baseAccess.herbs = { view: true, edit: true, approve: false };
+      baseAccess.trace = { view: true, edit: true, approve: false };
+      baseAccess.certification = { view: true, edit: false, approve: false };
+      baseAccess.map = { view: true, edit: false, approve: false };
+      baseAccess.marketplace = { view: true, edit: true, approve: false };
+      break;
+    case UserRole.LAB:
+      baseAccess.lab_samples = { view: true, edit: true, approve: true };
+      baseAccess.lab_testing = { view: true, edit: true, approve: true };
+      baseAccess.lab_materials = { view: true, edit: true, approve: true };
+      break;
+    case UserRole.MANUFACTURER:
+      baseAccess.production = { view: true, edit: true, approve: true };
+      baseAccess.inventory = { view: true, edit: true, approve: true };
+      baseAccess.logistics = { view: true, edit: true, approve: true };
+      break;
+    case UserRole.TTM_OFFICER:
+      baseAccess.policy = { view: true, edit: true, approve: true };
+      baseAccess.licenses = { view: true, edit: true, approve: true };
+      baseAccess.training = { view: true, edit: true, approve: true };
+      break;
+    case UserRole.ACFS_OFFICER:
+      baseAccess.farms = { view: true, edit: true, approve: true };
+      baseAccess.activities = { view: true, edit: true, approve: true };
+      baseAccess.harvest = { view: true, edit: true, approve: true };
+      break;
+    case UserRole.CUSTOMS_OFFICER:
+      baseAccess.exports = { view: true, edit: true, approve: true };
+      baseAccess.tariffs = { view: true, edit: true, approve: true };
+      baseAccess.regulations = { view: true, edit: true, approve: true };
+      break;
+    case UserRole.ADMIN:
+      Object.keys(baseAccess).forEach((key) => {
+        baseAccess[key as keyof RoleAccess] = { view: true, edit: true, approve: true };
+      });
+      break;
+    case UserRole.DATA_CONSUMER:
+      baseAccess.data_catalog = { view: true, edit: false, approve: false };
+      baseAccess.api = { view: true, edit: false, approve: false };
+      break;
+    case UserRole.GUEST:
+      // Guest has no access to anything except the marketplace
+      Object.keys(baseAccess).forEach((key) => {
+        if (key !== "marketplace") {
+          baseAccess[key as keyof RoleAccess] = { view: false, edit: false, approve: false };
+        } else {
+          baseAccess.marketplace = { view: true, edit: false, approve: false };
+        }
+      });
+      break;
+    default:
+      break;
   }
-];
 
-export default function RoleSelector() {
+  return baseAccess;
+};
+
+// Role details
+const roleDetails = {
+  [UserRole.FARMER]: {
+    label: "เกษตรกร",
+    description: "เข้าถึงข้อมูลการเพาะปลูก จัดการแปลง และติดตามผลผลิต",
+  },
+  [UserRole.LAB]: {
+    label: "ห้องปฏิบัติการ",
+    description: "บันทึกผลการตรวจสอบคุณภาพ และออกใบรับรอง",
+  },
+  [UserRole.MANUFACTURER]: {
+    label: "ผู้ผลิต",
+    description: "จัดการกระบวนการผลิตสินค้า และควบคุมคุณภาพ",
+  },
+  [UserRole.TTM_OFFICER]: {
+    label: "เจ้าหน้าที่กรมการแพทย์แผนไทย",
+    description: "กำกับดูแลนโยบาย และออกใบอนุญาต",
+  },
+  [UserRole.ACFS_OFFICER]: {
+    label: "เจ้าหน้าที่ มกอช.",
+    description: "ตรวจสอบและรับรองมาตรฐาน GAP",
+  },
+  [UserRole.CUSTOMS_OFFICER]: {
+    label: "เจ้าหน้าที่ศุลกากร",
+    description: "ตรวจสอบการนำเข้าส่งออกสินค้า",
+  },
+  [UserRole.ADMIN]: {
+    label: "ผู้ดูแลระบบ",
+    description: "จัดการระบบและผู้ใช้งานทั้งหมด",
+  },
+  [UserRole.DATA_CONSUMER]: {
+    label: "ผู้ใช้ข้อมูล",
+    description: "เข้าถึงข้อมูลสถิติและรายงาน",
+  },
+  [UserRole.GUEST]: {
+    label: "ผู้เยี่ยมชม",
+    description: "ดูข้อมูลทั่วไปในระบบ",
+  },
+};
+
+// Role card component
+interface RoleCardProps {
+  role: UserRole;
+  onSelect: (role: UserRole) => void;
+}
+
+const RoleCard: React.FC<RoleCardProps> = ({ role, onSelect }) => {
+  const { label, description } = roleDetails[role];
+
+  return (
+    <Card
+      className="cursor-pointer hover:shadow-md transition-shadow duration-200"
+      onClick={() => onSelect(role)}
+    >
+      <CardHeader>
+        <CardTitle>{label}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">เลือกบทบาทนี้</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Role selector component
+const RoleSelector: React.FC = () => {
+  const [username, setUsername] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const categories = Array.from(new Set(roles.map(role => role.category)));
-
-  const filteredRoles = selectedCategory 
-    ? roles.filter(role => role.category === selectedCategory)
-    : roles;
+  useEffect(() => {
+    // Check if a role is already selected
+    const storedRole = localStorage.getItem("userRole");
+    if (storedRole) {
+      navigate("/herb-trace/dashboard");
+    }
+  }, [navigate]);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
-    
-    const selectedRoleData = roles.find(r => r.id === role);
-    if (selectedRoleData) {
-      localStorage.setItem("userRole", role);
-      localStorage.setItem("roleAccess", JSON.stringify(selectedRoleData.access));
-      
+  };
+
+  const handleLogin = () => {
+    if (!username) {
       toast({
-        title: "บทบาทถูกเลือก",
-        description: `คุณได้เข้าสู่ระบบในฐานะ ${selectedRoleData.name}`,
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a username.",
       });
-      
-      navigate(selectedRoleData.route);
+      return;
     }
+
+    if (!selectedRole) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a role.",
+      });
+      return;
+    }
+
+    // Set the selected role and access rights in localStorage
+    localStorage.setItem("userRole", selectedRole);
+    const accessRights = setupRoleAccess(selectedRole);
+    localStorage.setItem("roleAccess", JSON.stringify(accessRights));
+
+    toast({
+      title: "Success",
+      description: `Logged in as ${roleDetails[selectedRole].label}`,
+    });
+
+    // Redirect to the dashboard
+    navigate("/herb-trace/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="w-full max-w-6xl">
-        <Card className="w-full">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">เลือกบทบาทของคุณ</CardTitle>
-            <CardDescription>
-              เลือกบทบาทเพื่อเข้าถึงแดชบอร์ดและฟังก์ชันที่เกี่ยวข้อง
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6 flex flex-wrap gap-2 justify-center">
-              <Button 
-                variant={selectedCategory === null ? "default" : "outline"}
-                className="mb-2"
-                onClick={() => setSelectedCategory(null)}
-              >
-                ทั้งหมด
-              </Button>
-              {categories.map(category => (
-                <Button 
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className="mb-2"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredRoles.map((role) => (
-                <Card 
-                  key={role.id} 
-                  className={`cursor-pointer transition-all ${
-                    selectedRole === role.id ? 'ring-2 ring-primary' : 'hover:shadow-md'
-                  }`}
-                  onClick={() => setSelectedRole(role.id)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <role.icon className="h-5 w-5 text-green-600" />
-                      <CardTitle className="text-lg">{role.name}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-muted-foreground">{role.description}</p>
-                    <div className="mt-2 text-xs text-gray-500">
-                      <p>สิทธิการเข้าถึง: </p>
-                      <ul className="list-disc pl-4 mt-1">
-                        {Object.entries(role.access)
-                          .filter(([_, access]) => access.view)
-                          .slice(0, 5)
-                          .map(([page, access]) => (
-                            <li key={page}>
-                              {page.charAt(0).toUpperCase() + page.slice(1)}: 
-                              {access.edit ? ' แก้ไข' : ' ดูอย่างเดียว'}
-                              {access.approve ? ' & อนุมัติ' : ''}
-                            </li>
-                          ))}
-                        {Object.entries(role.access).filter(([_, access]) => access.view).length > 5 && (
-                          <li>และอื่นๆ...</li>
-                        )}
-                      </ul>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRoleSelect(role.id);
-                      }}
-                    >
-                      เลือกบทบาท
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              ระดับการเข้าถึงของคุณจะถูกกำหนดโดยบทบาทที่คุณเลือก
-            </p>
-          </CardFooter>
-        </Card>
-      </div>
+    <div className="grid h-screen place-items-center bg-gray-100">
+      <Card className="w-full max-w-md p-8 space-y-4">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">
+            เลือกบทบาทของคุณ
+          </CardTitle>
+          <CardDescription className="text-center">
+            เพื่อประสบการณ์การใช้งานที่เหมาะสม
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="username">ชื่อผู้ใช้</Label>
+            <Input
+              id="username"
+              placeholder="กรอกชื่อผู้ใช้"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.values(UserRole).map((role) => (
+              <RoleCard
+                key={role}
+                role={role}
+                onSelect={handleRoleSelect}
+              />
+            ))}
+          </div>
+          <Button size="lg" onClick={handleLogin} disabled={!selectedRole}>
+            เข้าสู่ระบบ
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default RoleSelector;
