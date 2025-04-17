@@ -207,9 +207,26 @@ export function UserAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="month" 
-                  tick={{ angle: -45, textAnchor: 'end', fontSize: 12 }}
                   height={60}
                   tickFormatter={formatMonthLabel}
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text 
+                          x={0} 
+                          y={0} 
+                          dy={16} 
+                          textAnchor="end" 
+                          fill="#666"
+                          transform="rotate(-45)"
+                          fontSize={12}
+                        >
+                          {formatMonthLabel(payload.value)}
+                        </text>
+                      </g>
+                    );
+                  }}
                 />
                 <YAxis />
                 <Tooltip 
