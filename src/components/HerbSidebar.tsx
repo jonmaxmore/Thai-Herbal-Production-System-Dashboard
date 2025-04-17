@@ -1,12 +1,50 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Leaf, Search, ClipboardList, Settings, MapPin, ShoppingCart, LogOut, Lock, CheckCircle } from 'lucide-react';
+import { 
+  Home, 
+  Leaf, 
+  Search, 
+  ClipboardCheck, 
+  Settings, 
+  MapPin, 
+  ShoppingCart, 
+  LogOut, 
+  Lock, 
+  CheckCircle,
+  LayoutDashboard,
+  FileText,
+  Book,
+  Activity,
+  Harvest,
+  Shield,
+  Award,
+  PackageSearch,
+  BarChart2,
+  Truck,
+  Database,
+  Users,
+  HelpCircle,
+  Package,
+  QrCode,
+  Cloud
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useRoleAccess } from '@/hooks/use-role-access';
+import { PageType, useRoleAccess } from '@/hooks/use-role-access';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { WorkflowStatus } from './AccessControl';
+
+interface NavItem {
+  id: PageType;
+  label: string;
+  icon: React.ElementType;
+  path: string;
+  section?: string;
+  children?: NavItem[];
+}
 
 interface SidebarProps {
   activeTab: string;
@@ -23,24 +61,266 @@ export default function HerbSidebar({
 }: SidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { userRole, canView, canEdit, canApprove } = useRoleAccess();
+  const { userRole, canView } = useRoleAccess();
+  const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
+    main: true,
+    farm: false,
+    certification: false,
+    lab: false,
+    market: false,
+    reports: false
+  });
   
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/herb-trace/dashboard', page: 'dashboard' },
-    { id: 'herbs', label: 'Herbs', icon: Leaf, path: '/herb-trace/herbs', page: 'herbs' },
-    { id: 'trace', label: 'Trace', icon: Search, path: '/herb-trace/trace', page: 'trace' },
-    { id: 'certification', label: 'Certification', icon: ClipboardList, path: '/herb-trace/certification', page: 'certification' },
-    { id: 'map', label: 'Map', icon: MapPin, path: '/herb-trace/map', page: 'map' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, path: '/herb-trace/marketplace', page: 'marketplace' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/herb-trace/settings', page: 'settings' },
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+  
+  // Define navigation items with their access requirements
+  const navItems: NavItem[] = [
+    { 
+      id: 'dashboard', 
+      label: 'แดชบอร์ด', 
+      icon: LayoutDashboard, 
+      path: '/herb-trace/dashboard', 
+      section: 'main' 
+    },
+    // Farm management section
+    { 
+      id: 'farms', 
+      label: 'จัดการแปลงปลูก', 
+      icon: Leaf, 
+      path: '/herb-trace/farms', 
+      section: 'farm' 
+    },
+    { 
+      id: 'activities', 
+      label: 'บันทึกกิจกรรม', 
+      icon: Activity, 
+      path: '/herb-trace/activities', 
+      section: 'farm' 
+    },
+    { 
+      id: 'harvest', 
+      label: 'การเก็บเกี่ยว', 
+      icon: Harvest, 
+      path: '/herb-trace/harvest', 
+      section: 'farm' 
+    },
+    { 
+      id: 'weather', 
+      label: 'สภาพอากาศ', 
+      icon: Cloud, 
+      path: '/herb-trace/weather', 
+      section: 'farm' 
+    },
+    
+    // Herbs catalog
+    { 
+      id: 'herbs', 
+      label: 'สมุนไพร', 
+      icon: Leaf, 
+      path: '/herb-trace/herbs',
+      section: 'main'
+    },
+    
+    // Trace section
+    { 
+      id: 'trace', 
+      label: 'ตรวจสอบย้อนกลับ', 
+      icon: Search, 
+      path: '/herb-trace/trace',
+      section: 'main'
+    },
+    
+    // Certification section
+    { 
+      id: 'certification', 
+      label: 'การรับรองมาตรฐาน', 
+      icon: Award, 
+      path: '/herb-trace/certification',
+      section: 'certification'
+    },
+    { 
+      id: 'inspection', 
+      label: 'การตรวจประเมิน', 
+      icon: ClipboardCheck, 
+      path: '/herb-trace/inspection', 
+      section: 'certification' 
+    },
+    { 
+      id: 'licenses', 
+      label: 'ใบอนุญาต', 
+      icon: FileText, 
+      path: '/herb-trace/licenses', 
+      section: 'certification' 
+    },
+    
+    // Laboratory section
+    { 
+      id: 'lab_samples', 
+      label: 'ตัวอย่างวิเคราะห์', 
+      icon: Microscope, 
+      path: '/herb-trace/lab/samples', 
+      section: 'lab' 
+    },
+    { 
+      id: 'lab_testing', 
+      label: 'ผลการวิเคราะห์', 
+      icon: FileText, 
+      path: '/herb-trace/lab/testing', 
+      section: 'lab' 
+    },
+    { 
+      id: 'lab_materials', 
+      label: 'วัสดุและอุปกรณ์', 
+      icon: Package, 
+      path: '/herb-trace/lab/materials', 
+      section: 'lab' 
+    },
+    
+    // Map view
+    { 
+      id: 'map', 
+      label: 'แผนที่', 
+      icon: MapPin, 
+      path: '/herb-trace/map',
+      section: 'main'
+    },
+    
+    // Procurement and production section
+    { 
+      id: 'procurement', 
+      label: 'จัดซื้อวัตถุดิบ', 
+      icon: PackageSearch, 
+      path: '/herb-trace/procurement', 
+      section: 'market' 
+    },
+    { 
+      id: 'production', 
+      label: 'กระบวนการผลิต', 
+      icon: Activity, 
+      path: '/herb-trace/production', 
+      section: 'market' 
+    },
+    { 
+      id: 'inventory', 
+      label: 'สินค้าคงคลัง', 
+      icon: Package, 
+      path: '/herb-trace/inventory', 
+      section: 'market' 
+    },
+    { 
+      id: 'logistics', 
+      label: 'การขนส่ง', 
+      icon: Truck, 
+      path: '/herb-trace/logistics', 
+      section: 'market' 
+    },
+    { 
+      id: 'qrcode', 
+      label: 'QR Code', 
+      icon: QrCode, 
+      path: '/herb-trace/qrcode', 
+      section: 'market' 
+    },
+    
+    // Marketplace
+    { 
+      id: 'marketplace', 
+      label: 'ตลาดกลาง', 
+      icon: ShoppingCart, 
+      path: '/herb-trace/marketplace',
+      section: 'main'
+    },
+    { 
+      id: 'b2b', 
+      label: 'ตลาด B2B', 
+      icon: Users, 
+      path: '/herb-trace/b2b', 
+      section: 'market' 
+    },
+    { 
+      id: 'contracts', 
+      label: 'สัญญาซื้อขาย', 
+      icon: FileText, 
+      path: '/herb-trace/contracts', 
+      section: 'market' 
+    },
+    
+    // Reports section
+    { 
+      id: 'reports', 
+      label: 'รายงาน', 
+      icon: BarChart2, 
+      path: '/herb-trace/reports', 
+      section: 'reports' 
+    },
+    { 
+      id: 'exports', 
+      label: 'การส่งออก', 
+      icon: FileText, 
+      path: '/herb-trace/exports', 
+      section: 'reports' 
+    },
+    
+    // Learning
+    { 
+      id: 'learning', 
+      label: 'ห้องเรียนออนไลน์', 
+      icon: Book, 
+      path: '/herb-trace/learning',
+      section: 'main'
+    },
+    
+    // Administration
+    { 
+      id: 'settings', 
+      label: 'ตั้งค่า', 
+      icon: Settings, 
+      path: '/herb-trace/settings',
+      section: 'main'
+    },
+    { 
+      id: 'users', 
+      label: 'จัดการผู้ใช้', 
+      icon: Users, 
+      path: '/herb-trace/users', 
+      section: 'main' 
+    },
+    { 
+      id: 'support', 
+      label: 'ช่วยเหลือ', 
+      icon: HelpCircle, 
+      path: '/herb-trace/support', 
+      section: 'main' 
+    },
   ];
 
-  const handleTabChange = (tabId: string, path: string, page: string) => {
-    if (!canView(page as any)) {
+  // Define sections with their Thai names
+  const sections = [
+    { id: 'farm', label: 'การเพาะปลูก', icon: Leaf },
+    { id: 'certification', label: 'การรับรอง', icon: Shield },
+    { id: 'lab', label: 'ห้องปฏิบัติการ', icon: Microscope },
+    { id: 'market', label: 'การผลิตและตลาด', icon: ShoppingCart },
+    { id: 'reports', label: 'รายงานและวิเคราะห์', icon: BarChart2 }
+  ];
+
+  // Filter nav items by section and access rights
+  const getNavItemsBySection = (sectionId: string) => {
+    return navItems
+      .filter(item => item.section === sectionId && canView(item.id))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  };
+
+  const handleTabChange = (tabId: PageType, path: string) => {
+    if (!canView(tabId)) {
       toast({
         variant: "destructive",
-        title: "Access Denied",
-        description: "You don't have permission to view this page",
+        title: "ไม่สามารถเข้าถึงได้",
+        description: "คุณไม่มีสิทธิ์ในการเข้าถึงหน้านี้",
       });
       return;
     }
@@ -58,29 +338,22 @@ export default function HerbSidebar({
     localStorage.removeItem("roleAccess");
     
     toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
+      title: "ออกจากระบบสำเร็จ",
+      description: "คุณได้ออกจากระบบแล้ว",
     });
     
     // Navigate to login page
     navigate("/");
   };
 
-  // Get permission label for a page
-  const getPermissionLabel = (page: string) => {
-    if (canApprove(page as any)) return "Approve";
-    if (canEdit(page as any)) return "Edit";
-    if (canView(page as any)) return "View";
-    return "No Access";
+  // Get permission icon for a page
+  const getPermissionIcon = (page: PageType) => {
+    if (!canView(page)) return <Lock className="h-3 w-3 text-red-600" />;
+    return <CheckCircle className="h-3 w-3 text-green-600" />;
   };
 
-  // Get permission icon for a page
-  const getPermissionIcon = (page: string) => {
-    if (canApprove(page as any)) return <CheckCircle className="h-3 w-3 text-green-600" />;
-    if (canEdit(page as any)) return <CheckCircle className="h-3 w-3 text-blue-600" />;
-    if (canView(page as any)) return <CheckCircle className="h-3 w-3 text-gray-600" />;
-    return <Lock className="h-3 w-3 text-red-600" />;
-  };
+  // Main navigation items shown directly
+  const mainNavItems = getNavItemsBySection('main');
 
   return (
     <div className="w-64 p-4 bg-white border-r h-screen space-y-6 shadow-md flex flex-col">
@@ -90,43 +363,116 @@ export default function HerbSidebar({
       </div>
 
       <div className="px-3 py-2 bg-green-50 rounded-md mb-4">
-        <p className="text-xs text-gray-500">Logged in as</p>
+        <p className="text-xs text-gray-500">เข้าสู่ระบบในฐานะ</p>
         <p className="text-sm font-medium">{userRole}</p>
       </div>
 
-      <nav className="space-y-1 flex-grow">
-        {navItems.map((item) => (
+      <nav className="space-y-1 flex-grow overflow-y-auto">
+        {/* Main navigation items */}
+        {mainNavItems.map((item) => (
           <TooltipProvider key={item.id}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  disabled={!canView(item.page as any)}
+                  disabled={!canView(item.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    !canView(item.page as any) 
+                    !canView(item.id) 
                       ? "text-gray-300 cursor-not-allowed" 
                       : activeTab === item.id
                         ? "bg-herb-light text-herb-dark"
                         : "text-gray-600 hover:bg-gray-100"
                   )}
-                  onClick={() => handleTabChange(item.id, item.path, item.page)}
+                  onClick={() => handleTabChange(item.id, item.path)}
                 >
                   <item.icon className={cn(
                     "h-5 w-5",
-                    !canView(item.page as any) ? "text-gray-300" : ""
+                    !canView(item.id) ? "text-gray-300" : ""
                   )} />
                   <span>{item.label}</span>
                   <span className="ml-auto">
-                    {getPermissionIcon(item.page)}
+                    <WorkflowStatus page={item.id} />
                   </span>
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{getPermissionLabel(item.page)} permission</p>
+                <WorkflowStatus page={item.id} />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ))}
+
+        {/* Section collapsibles */}
+        {sections.map((section) => {
+          const sectionItems = getNavItemsBySection(section.id);
+          
+          // Only show section if it has accessible items
+          if (sectionItems.length === 0) return null;
+          
+          return (
+            <Collapsible 
+              key={section.id}
+              open={openSections[section.id]}
+              onOpenChange={() => toggleSection(section.id)}
+              className="w-full"
+            >
+              <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
+                <div className="flex items-center gap-3">
+                  <section.icon className="h-5 w-5" />
+                  <span>{section.label}</span>
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`h-4 w-4 transition-transform ${openSections[section.id] ? 'transform rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1">
+                {sectionItems.map((item) => (
+                  <TooltipProvider key={item.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          disabled={!canView(item.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                            !canView(item.id) 
+                              ? "text-gray-300 cursor-not-allowed" 
+                              : activeTab === item.id
+                                ? "bg-herb-light text-herb-dark"
+                                : "text-gray-600 hover:bg-gray-100"
+                          )}
+                          onClick={() => handleTabChange(item.id, item.path)}
+                        >
+                          <item.icon className={cn(
+                            "h-5 w-5",
+                            !canView(item.id) ? "text-gray-300" : ""
+                          )} />
+                          <span>{item.label}</span>
+                          <span className="ml-auto">
+                            <WorkflowStatus page={item.id} />
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <WorkflowStatus page={item.id} />
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </nav>
 
       <div className="pt-6 border-t border-gray-200">
@@ -136,7 +482,7 @@ export default function HerbSidebar({
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <span>ออกจากระบบ</span>
         </Button>
         
         <div className="mt-4 px-3 py-2">
