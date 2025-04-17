@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StatusBadge from "@/components/StatusBadge";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import { generateFarmers, CertificationStatus } from "@/utils/herbData";
+import { Button } from "@/components/ui/button";
+import AccessControl from "@/components/AccessControl";
 
 export default function CertificationView() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,7 +36,16 @@ export default function CertificationView() {
   return (
     <HerbTraceLayout activeTab="certification">
       <div className="space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold hidden md:block text-green-800">Certified Farmers</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold hidden md:block text-green-800">Certified Farmers</h2>
+          
+          <AccessControl page="certification" requiredPermission="approve">
+            <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+              <PlusCircle className="h-4 w-4" />
+              Review Pending Certifications
+            </Button>
+          </AccessControl>
+        </div>
         
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -80,6 +91,9 @@ export default function CertificationView() {
                     <TableHead>EU-GMP</TableHead>
                     <TableHead>DTTAM</TableHead>
                     <TableHead>TIS</TableHead>
+                    <AccessControl page="certification" requiredPermission="edit">
+                      <TableHead className="text-right">Actions</TableHead>
+                    </AccessControl>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -92,6 +106,15 @@ export default function CertificationView() {
                       <TableCell><StatusBadge status={farmer.euGmp} /></TableCell>
                       <TableCell><StatusBadge status={farmer.dttm} /></TableCell>
                       <TableCell><StatusBadge status={farmer.tis} /></TableCell>
+                      <AccessControl page="certification" requiredPermission="edit">
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            {farmer.gapc === "Pending" || farmer.euGmp === "Pending" || 
+                             farmer.dttm === "Pending" || farmer.tis === "Pending" 
+                              ? "Review" : "View"}
+                          </Button>
+                        </TableCell>
+                      </AccessControl>
                     </TableRow>
                   ))}
                 </TableBody>

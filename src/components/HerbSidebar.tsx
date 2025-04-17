@@ -1,10 +1,12 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Leaf, Search, ClipboardList, Settings, MapPin, ShoppingCart, LogOut } from 'lucide-react';
+import { Home, Leaf, Search, ClipboardList, Settings, MapPin, ShoppingCart, LogOut, Lock, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useRoleAccess } from '@/hooks/use-role-access';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SidebarProps {
   activeTab: string;
@@ -21,19 +23,28 @@ export default function HerbSidebar({
 }: SidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const userRole = localStorage.getItem("userRole") || "MEMBER_MAIN";
+  const { userRole, canView, canEdit, canApprove } = useRoleAccess();
   
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/herb-trace/dashboard' },
-    { id: 'herbs', label: 'Herbs', icon: Leaf, path: '/herb-trace/herbs' },
-    { id: 'trace', label: 'Trace', icon: Search, path: '/herb-trace/trace' },
-    { id: 'certification', label: 'Certification', icon: ClipboardList, path: '/herb-trace/certification' },
-    { id: 'map', label: 'Map', icon: MapPin, path: '/herb-trace/map' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, path: '/herb-trace/marketplace' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/herb-trace/settings' },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/herb-trace/dashboard', page: 'dashboard' },
+    { id: 'herbs', label: 'Herbs', icon: Leaf, path: '/herb-trace/herbs', page: 'herbs' },
+    { id: 'trace', label: 'Trace', icon: Search, path: '/herb-trace/trace', page: 'trace' },
+    { id: 'certification', label: 'Certification', icon: ClipboardList, path: '/herb-trace/certification', page: 'certification' },
+    { id: 'map', label: 'Map', icon: MapPin, path: '/herb-trace/map', page: 'map' },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart, path: '/herb-trace/marketplace', page: 'marketplace' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/herb-trace/settings', page: 'settings' },
   ];
 
-  const handleTabChange = (tabId: string, path: string) => {
+  const handleTabChange = (tabId: string, path: string, page: string) => {
+    if (!canView(page as any)) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to view this page",
+      });
+      return;
+    }
+    
     setActiveTab(tabId);
     navigate(path);
     if (isMobile && setIsMobileMenuOpen) {
@@ -42,8 +53,9 @@ export default function HerbSidebar({
   };
 
   const handleLogout = () => {
-    // Clear user role from local storage
+    // Clear user role and access from local storage
     localStorage.removeItem("userRole");
+    localStorage.removeItem("roleAccess");
     
     toast({
       title: "Logged out",
@@ -52,6 +64,22 @@ export default function HerbSidebar({
     
     // Navigate to login page
     navigate("/");
+  };
+
+  // Get permission label for a page
+  const getPermissionLabel = (page: string) => {
+    if (canApprove(page as any)) return "Approve";
+    if (canEdit(page as any)) return "Edit";
+    if (canView(page as any)) return "View";
+    return "No Access";
+  };
+
+  // Get permission icon for a page
+  const getPermissionIcon = (page: string) => {
+    if (canApprove(page as any)) return <CheckCircle className="h-3 w-3 text-green-600" />;
+    if (canEdit(page as any)) return <CheckCircle className="h-3 w-3 text-blue-600" />;
+    if (canView(page as any)) return <CheckCircle className="h-3 w-3 text-gray-600" />;
+    return <Lock className="h-3 w-3 text-red-600" />;
   };
 
   return (
@@ -68,19 +96,36 @@ export default function HerbSidebar({
 
       <nav className="space-y-1 flex-grow">
         {navItems.map((item) => (
-          <button
-            key={item.id}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-              activeTab === item.id
-                ? "bg-herb-light text-herb-dark"
-                : "text-gray-600 hover:bg-gray-100"
-            )}
-            onClick={() => handleTabChange(item.id, item.path)}
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.label}</span>
-          </button>
+          <TooltipProvider key={item.id}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  disabled={!canView(item.page as any)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    !canView(item.page as any) 
+                      ? "text-gray-300 cursor-not-allowed" 
+                      : activeTab === item.id
+                        ? "bg-herb-light text-herb-dark"
+                        : "text-gray-600 hover:bg-gray-100"
+                  )}
+                  onClick={() => handleTabChange(item.id, item.path, item.page)}
+                >
+                  <item.icon className={cn(
+                    "h-5 w-5",
+                    !canView(item.page as any) ? "text-gray-300" : ""
+                  )} />
+                  <span>{item.label}</span>
+                  <span className="ml-auto">
+                    {getPermissionIcon(item.page)}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{getPermissionLabel(item.page)} permission</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ))}
       </nav>
 

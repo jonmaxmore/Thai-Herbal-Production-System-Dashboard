@@ -1,8 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import HerbSidebar from "@/components/HerbSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRoleAccess, PageType } from "@/hooks/use-role-access";
+import { useToast } from "@/hooks/use-toast";
 
 interface HerbTraceLayoutProps {
   children: React.ReactNode;
@@ -12,6 +15,23 @@ interface HerbTraceLayoutProps {
 export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isLoading, canView } = useRoleAccess();
+
+  // Map activeTab to page type
+  const getPageType = (): PageType => {
+    switch (activeTab) {
+      case "dashboard": return "dashboard";
+      case "herbs": return "herbs";
+      case "trace": return "trace";
+      case "certification": return "certification";
+      case "map": return "map";
+      case "settings": return "settings";
+      case "marketplace": return "marketplace";
+      default: return "dashboard";
+    }
+  };
 
   // Get appropriate title based on active tab
   const getTabTitle = () => {
@@ -22,9 +42,34 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
       case "certification": return "Certifications";
       case "map": return "Map View";
       case "settings": return "Settings";
+      case "marketplace": return "Marketplace";
       default: return "HerbTrace";
     }
   };
+
+  // Check access for current page
+  useEffect(() => {
+    if (!isLoading) {
+      const pageType = getPageType();
+      if (!canView(pageType)) {
+        toast({
+          variant: "destructive",
+          title: "Access Denied",
+          description: "You don't have permission to view this page",
+        });
+        navigate("/herb-trace/dashboard");
+      }
+    }
+  }, [activeTab, isLoading, navigate]);
+
+  // If still loading access rights, show loading indicator
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-green-50 to-blue-50">

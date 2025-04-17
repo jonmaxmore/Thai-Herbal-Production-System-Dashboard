@@ -1,16 +1,18 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Leaf } from "lucide-react";
+import { Leaf, Shield, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [accountType, setAccountType] = useState("user");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -54,6 +56,39 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Tabs defaultValue="user" onValueChange={setAccountType}>
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="user" className="flex gap-2 items-center">
+                <Users className="h-4 w-4" />
+                <span>User</span>
+              </TabsTrigger>
+              <TabsTrigger value="farmer" className="flex gap-2 items-center">
+                <Leaf className="h-4 w-4" />
+                <span>Farmer</span>
+              </TabsTrigger>
+              <TabsTrigger value="authority" className="flex gap-2 items-center">
+                <Shield className="h-4 w-4" />
+                <span>Authority</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="user">
+              <div className="text-sm text-muted-foreground mb-4">
+                Login as a general user to browse herbs, trace products, or make purchases.
+              </div>
+            </TabsContent>
+            <TabsContent value="farmer">
+              <div className="text-sm text-muted-foreground mb-4">
+                Login as a farmer to register your herbs, apply for certifications, and sell products.
+              </div>
+            </TabsContent>
+            <TabsContent value="authority">
+              <div className="text-sm text-muted-foreground mb-4">
+                Login as a regulatory authority to approve certifications and monitor compliance.
+              </div>
+            </TabsContent>
+          </Tabs>
+
           <form onSubmit={handleLogin}>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -86,10 +121,13 @@ export default function Login() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-2">
           <p className="text-sm text-gray-500">
             Don't have an account? Contact your administrator
           </p>
+          <div className="text-xs text-muted-foreground text-center px-4">
+            After login, you'll be directed to select your specific role in the system
+          </div>
         </CardFooter>
       </Card>
     </div>
