@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/shared/Login";
+import RoleSelector from "./components/RoleSelector";
 
 // Herb Trace pages
 import HerbTraceDashboard from "./pages/herb-trace/HerbTraceDashboard";
@@ -28,6 +30,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/role-selector" element={<RoleSelector />} />
           <Route path="/index" element={<Index />} />
           
           {/* Herb Trace Routes */}

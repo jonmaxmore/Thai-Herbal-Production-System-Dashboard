@@ -25,9 +25,10 @@ export default function Login() {
         // Simple validation for demo purposes
         toast({
           title: "Login successful",
-          description: "Welcome to Thai Herbal Production System",
+          description: "Please select your role",
         });
-        navigate("/herb-trace/dashboard");
+        // Redirect to the role selector page
+        navigate("/role-selector");
       } else {
         toast({
           variant: "destructive",

@@ -6,24 +6,81 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { herbList } from "@/utils/herbData";
 import { useToast } from "@/hooks/use-toast";
+
+// Define marketplace item type
+interface MarketplaceItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: string;
+  rating: number;
+}
 
 export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<{id: string; name: string; quantity: number; price: number}[]>([]);
   const { toast } = useToast();
 
-  // Convert herb list to marketplace items
-  const marketplaceItems = herbList.map(herb => ({
-    id: herb.id,
-    name: herb.name,
-    description: herb.scientificName || herb.name,
-    price: Math.floor(Math.random() * 500) + 100,
-    stock: Math.floor(Math.random() * 50) + 5,
-    image: "https://via.placeholder.com/150",
-    rating: Math.floor(Math.random() * 5) + 1
-  }));
+  // Generate marketplace items
+  const marketplaceItems: MarketplaceItem[] = [
+    {
+      id: "herb-001",
+      name: "Turmeric Extract",
+      description: "High quality organic turmeric extract",
+      price: 350,
+      stock: 24,
+      image: "https://via.placeholder.com/150",
+      rating: 4
+    },
+    {
+      id: "herb-002",
+      name: "Ginger Root",
+      description: "Fresh Thai ginger root",
+      price: 220,
+      stock: 38,
+      image: "https://via.placeholder.com/150",
+      rating: 5
+    },
+    {
+      id: "herb-003",
+      name: "Peppermint Oil",
+      description: "Pure peppermint essential oil",
+      price: 450,
+      stock: 12,
+      image: "https://via.placeholder.com/150",
+      rating: 4
+    },
+    {
+      id: "herb-004",
+      name: "Lemongrass",
+      description: "Dried organic lemongrass",
+      price: 180,
+      stock: 45,
+      image: "https://via.placeholder.com/150",
+      rating: 3
+    },
+    {
+      id: "herb-005",
+      name: "Thai Basil",
+      description: "Fresh Thai holy basil",
+      price: 150,
+      stock: 50,
+      image: "https://via.placeholder.com/150",
+      rating: 5
+    },
+    {
+      id: "herb-006",
+      name: "Galangal",
+      description: "Thai galangal root",
+      price: 280,
+      stock: 20,
+      image: "https://via.placeholder.com/150",
+      rating: 4
+    }
+  ];
 
   // Filter items based on search term
   const filteredItems = marketplaceItems.filter(item => 
@@ -31,7 +88,7 @@ export default function Marketplace() {
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const addToCart = (item: typeof marketplaceItems[0]) => {
+  const addToCart = (item: MarketplaceItem) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
     
     if (existingItem) {
