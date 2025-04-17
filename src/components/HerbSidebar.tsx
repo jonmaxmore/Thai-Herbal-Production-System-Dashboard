@@ -16,7 +16,7 @@ import {
   FileText,
   Book,
   Activity,
-  Harvest,
+  PlaneTakeoff, // Replacing Harvest icon
   Shield,
   Award,
   PackageSearch,
@@ -27,7 +27,8 @@ import {
   HelpCircle,
   Package,
   QrCode,
-  Cloud
+  Cloud,
+  FlaskConical // Replacing Microscope icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -105,7 +106,7 @@ export default function HerbSidebar({
     { 
       id: 'harvest', 
       label: 'การเก็บเกี่ยว', 
-      icon: Harvest, 
+      icon: PlaneTakeoff, // Changed from Harvest to PlaneTakeoff
       path: '/herb-trace/harvest', 
       section: 'farm' 
     },
@@ -162,7 +163,7 @@ export default function HerbSidebar({
     { 
       id: 'lab_samples', 
       label: 'ตัวอย่างวิเคราะห์', 
-      icon: Microscope, 
+      icon: FlaskConical, // Changed from Microscope to FlaskConical
       path: '/herb-trace/lab/samples', 
       section: 'lab' 
     },
@@ -303,7 +304,7 @@ export default function HerbSidebar({
   const sections = [
     { id: 'farm', label: 'การเพาะปลูก', icon: Leaf },
     { id: 'certification', label: 'การรับรอง', icon: Shield },
-    { id: 'lab', label: 'ห้องปฏิบัติการ', icon: Microscope },
+    { id: 'lab', label: 'ห้องปฏิบัติการ', icon: FlaskConical }, // Changed from Microscope to FlaskConical
     { id: 'market', label: 'การผลิตและตลาด', icon: ShoppingCart },
     { id: 'reports', label: 'รายงานและวิเคราะห์', icon: BarChart2 }
   ];

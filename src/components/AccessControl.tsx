@@ -54,7 +54,7 @@ export default function AccessControl({
       case 'draft': return "secondary";
       case 'submitted': return "outline";
       case 'in-review': return "default";
-      case 'approved': return "success";
+      case 'approved': return "secondary"; // Changed from "success" to "secondary"
       case 'rejected': return "destructive";
       default: return "default";
     }
@@ -136,7 +136,7 @@ export function WorkflowStatus({ page }: { page: PageType }) {
     switch (status) {
       case 'approve':
         return (
-          <Badge variant="success" className="flex items-center">
+          <Badge variant="secondary" className="flex items-center"> {/* Changed from "success" to "secondary" */}
             <CheckCircle className="h-3 w-3 mr-1" />
             มีสิทธิอนุมัติ
           </Badge>
