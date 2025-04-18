@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
@@ -6,6 +5,7 @@ import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
 import { TransactionTable } from "@/components/herb-trace/TransactionTable";
+import { StakeholderAnalysis } from "@/components/herb-trace/StakeholderAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserAnalytics from "@/components/herb-trace/UserAnalytics";
 import { getDashboardData } from "@/utils/mockDatabase";
@@ -15,11 +15,9 @@ export default function HerbTraceDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call to get dashboard data
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
         const data = getDashboardData();
         setDashboardData(data);
@@ -101,8 +99,9 @@ export default function HerbTraceDashboard() {
 
         <Tabs defaultValue="certification" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="certification">การรับรองมาตรฐาน</TabsTrigger>
+            <TabsTrigger value="certification">การรับร��งมาตรฐาน</TabsTrigger>
             <TabsTrigger value="users">ข้อมูลผู้ใช้งาน</TabsTrigger>
+            <TabsTrigger value="stakeholders">ผู้มีส่วนได้ส่วนเสีย</TabsTrigger>
             <TabsTrigger value="activity">กิจกรรมในระบบ</TabsTrigger>
           </TabsList>
           
@@ -116,6 +115,10 @@ export default function HerbTraceDashboard() {
           
           <TabsContent value="users">
             <UserAnalytics />
+          </TabsContent>
+          
+          <TabsContent value="stakeholders">
+            <StakeholderAnalysis />
           </TabsContent>
           
           <TabsContent value="activity">
