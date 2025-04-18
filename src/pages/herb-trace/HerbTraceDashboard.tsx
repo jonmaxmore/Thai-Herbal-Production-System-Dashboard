@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck } from "lucide-react";
+import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck, Activity, TestTube, CheckCircle } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
@@ -9,6 +10,7 @@ import { StakeholderAnalysis } from "@/components/herb-trace/StakeholderAnalysis
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserAnalytics from "@/components/herb-trace/UserAnalytics";
 import { getDashboardData } from "@/utils/mockDatabase";
+import { ProcessFlowSection } from "@/components/herb-trace/ProcessFlowSection";
 
 export default function HerbTraceDashboard() {
   const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);
@@ -50,7 +52,11 @@ export default function HerbTraceDashboard() {
     userStats,
     transactions,
     totalSales,
-    pendingOrders
+    pendingOrders,
+    processStats,
+    stakeholdersByRole,
+    stakeholderInvolvement,
+    recentInspections
   } = dashboardData;
   
   return (
@@ -72,15 +78,15 @@ export default function HerbTraceDashboard() {
             className="bg-white hover:shadow-lg transition-all duration-300" 
           />
           <StatCard 
-            title="GACP ผ่านการรับรอง" 
-            value={gapcStatus["Passed"] || 0} 
-            icon={<ClipboardCheck className="h-5 w-5 text-green-600" />}
+            title="กระบวนการทั้งหมด" 
+            value={processStats.totalProcesses.toLocaleString()} 
+            icon={<Activity className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
           <StatCard 
-            title="EU-GMP รอพิจารณา" 
-            value={euGmpStatus["Pending"] || 0} 
-            icon={<Leaf className="h-5 w-5 text-green-600" />}
+            title="ผ่านการทดสอบ" 
+            value={processStats.statusCounts["Passed"].toLocaleString()} 
+            icon={<CheckCircle className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
           <StatCard 
@@ -91,7 +97,7 @@ export default function HerbTraceDashboard() {
           />
           <StatCard 
             title="คำสั่งซื้อที่รอดำเนินการ" 
-            value={pendingOrders} 
+            value={pendingOrders.toString()} 
             icon={<ShoppingCart className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
@@ -99,7 +105,8 @@ export default function HerbTraceDashboard() {
 
         <Tabs defaultValue="certification" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="certification">การรับร��งมาตรฐาน</TabsTrigger>
+            <TabsTrigger value="certification">การรับรองมาตรฐาน</TabsTrigger>
+            <TabsTrigger value="process">กระบวนการตรวจสอบ</TabsTrigger>
             <TabsTrigger value="users">ข้อมูลผู้ใช้งาน</TabsTrigger>
             <TabsTrigger value="stakeholders">ผู้มีส่วนได้ส่วนเสีย</TabsTrigger>
             <TabsTrigger value="activity">กิจกรรมในระบบ</TabsTrigger>
@@ -113,12 +120,22 @@ export default function HerbTraceDashboard() {
             />
           </TabsContent>
           
+          <TabsContent value="process">
+            <ProcessFlowSection 
+              processStats={processStats}
+              recentInspections={recentInspections}
+            />
+          </TabsContent>
+          
           <TabsContent value="users">
             <UserAnalytics />
           </TabsContent>
           
           <TabsContent value="stakeholders">
-            <StakeholderAnalysis />
+            <StakeholderAnalysis 
+              stakeholdersByRole={stakeholdersByRole}
+              stakeholderInvolvement={stakeholderInvolvement}
+            />
           </TabsContent>
           
           <TabsContent value="activity">
