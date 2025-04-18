@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function TraceabilityView() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [traces, setTraces] = useState([]);
+  const [traces, setTraces] = useState(generateTraces(100));
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   

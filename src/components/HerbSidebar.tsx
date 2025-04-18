@@ -28,8 +28,7 @@ import {
   Package,
   QrCode,
   Cloud,
-  FlaskConical, // Replacing Microscope icon
-  Info
+  FlaskConical // Replacing Microscope icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -82,13 +81,6 @@ export default function HerbSidebar({
   
   // Define navigation items with their access requirements
   const navItems: NavItem[] = [
-    { 
-      id: 'platform_overview', 
-      label: 'ภาพรวมแพลตฟอร์ม', 
-      icon: Info, 
-      path: '/herb-trace/platform-overview', 
-      section: 'main' 
-    },
     { 
       id: 'dashboard', 
       label: 'แดชบอร์ด', 
