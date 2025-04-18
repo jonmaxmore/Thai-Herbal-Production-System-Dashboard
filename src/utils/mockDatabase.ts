@@ -1,4 +1,3 @@
-
 import { UserRole } from "@/components/RoleSelector";
 import { 
   generateMockUsers, mockUsers as generatedUsers,
