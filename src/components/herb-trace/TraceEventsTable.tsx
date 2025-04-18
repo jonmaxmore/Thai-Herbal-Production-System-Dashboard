@@ -3,8 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Trace } from "@/utils/herbData";
 
+interface EnhancedTrace extends Trace {
+  herbName?: string;
+  verifiedBy?: string;
+}
+
 interface TraceEventsTableProps {
-  traces: Trace[];
+  traces: EnhancedTrace[];
 }
 
 export function TraceEventsTable({ traces }: TraceEventsTableProps) {
@@ -20,6 +25,7 @@ export function TraceEventsTable({ traces }: TraceEventsTableProps) {
                 <TableHead>Herb</TableHead>
                 <TableHead>Event</TableHead>
                 <TableHead>Ref. Code</TableHead>
+                <TableHead>Verified By</TableHead>
                 <TableHead>Timestamp</TableHead>
               </TableRow>
             </TableHeader>
@@ -27,9 +33,10 @@ export function TraceEventsTable({ traces }: TraceEventsTableProps) {
               {traces.map(trace => (
                 <TableRow key={trace.id} className="hover:bg-green-50">
                   <TableCell>{trace.id}</TableCell>
-                  <TableCell>{trace.herb}</TableCell>
+                  <TableCell>{trace.herbName || trace.herb}</TableCell>
                   <TableCell>{trace.event}</TableCell>
                   <TableCell>{trace.referenceCode || "N/A"}</TableCell>
+                  <TableCell>{trace.verifiedBy || "System"}</TableCell>
                   <TableCell>{new Date(trace.timestamp).toLocaleString()}</TableCell>
                 </TableRow>
               ))}

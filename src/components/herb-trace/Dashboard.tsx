@@ -1,26 +1,48 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Users, ClipboardCheck, Leaf, AlertTriangle } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
-import { CertificationStatus } from "@/utils/herbData";
+import { getDashboardData } from "@/utils/mockDatabase";
 
-interface DashboardProps {
-  farmers: any[];
-  traces: any[];
-  gapcStatus: Record<CertificationStatus, number>;
-  euGmpStatus: Record<CertificationStatus, number>;
-  dttmStatus: Record<CertificationStatus, number>;
-}
+export default function Dashboard() {
+  const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-export default function Dashboard({ 
-  farmers, 
-  traces, 
-  gapcStatus, 
-  euGmpStatus, 
-  dttmStatus 
-}: DashboardProps) {
+  useEffect(() => {
+    // Load dashboard data
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const data = getDashboardData();
+        setDashboardData(data);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading || !dashboardData) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  const { 
+    farmers, 
+    traces, 
+    gapcStatus, 
+    euGmpStatus, 
+    dttmStatus 
+  } = dashboardData;
+
   return (
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold hidden md:block text-green-800">Herb Trace Dashboard</h2>

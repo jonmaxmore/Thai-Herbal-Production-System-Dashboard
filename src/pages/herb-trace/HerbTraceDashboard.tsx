@@ -1,36 +1,60 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import StatCard from "@/components/StatCard";
-import { herbList, generateFarmers, generateTraces, calculateStatusCounts } from "@/utils/herbData";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
 import { TransactionTable } from "@/components/herb-trace/TransactionTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserAnalytics from "@/components/herb-trace/UserAnalytics";
-import { getUserActivityStats } from "@/utils/mockUserData";
-import { 
-  generateTransactions, 
-  getTransactionTotals 
-} from "@/utils/marketplaceData";
+import { getDashboardData } from "@/utils/mockDatabase";
 
 export default function HerbTraceDashboard() {
-  const [farmers] = useState(generateFarmers(100));
-  const [traces] = useState(generateTraces(100));
-  const [transactions] = useState(generateTransactions(50));
-  
-  // Certification counts
-  const gapcStatus = calculateStatusCounts(farmers, "gapc");
-  const euGmpStatus = calculateStatusCounts(farmers, "euGmp");
-  const dttmStatus = calculateStatusCounts(farmers, "dttm");
+  const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Transaction totals
-  const { totalSales, pendingOrders } = getTransactionTotals(transactions);
-  
-  // User statistics from mock data
-  const userStats = getUserActivityStats();
+  useEffect(() => {
+    // Simulate API call to get dashboard data
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const data = getDashboardData();
+        setDashboardData(data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    fetchData();
+  }, []);
+
+  if (isLoading || !dashboardData) {
+    return (
+      <HerbTraceLayout activeTab="dashboard">
+        <div className="h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        </div>
+      </HerbTraceLayout>
+    );
+  }
+
+  const { 
+    farmers, 
+    traces, 
+    gapcStatus, 
+    euGmpStatus, 
+    dttmStatus, 
+    userStats,
+    transactions,
+    totalSales,
+    pendingOrders
+  } = dashboardData;
+  
   return (
     <HerbTraceLayout activeTab="dashboard">
       <div className="space-y-6 animate-fade-in">
@@ -102,10 +126,10 @@ export default function HerbTraceDashboard() {
                   <TabsTrigger value="transactions">ธุรกรรมในตลาด</TabsTrigger>
                 </TabsList>
                 <TabsContent value="traceability">
-                  <TraceEventsTable traces={traces.slice(0, 5)} />
+                  <TraceEventsTable traces={traces} />
                 </TabsContent>
                 <TabsContent value="transactions">
-                  <TransactionTable transactions={transactions.slice(0, 10)} />
+                  <TransactionTable transactions={transactions} />
                 </TabsContent>
               </Tabs>
             </div>
