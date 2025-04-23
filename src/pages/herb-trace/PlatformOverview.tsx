@@ -9,6 +9,22 @@ import { Info, FileText, Users, Workflow, Link } from "lucide-react";
 export default function PlatformOverview() {
   // Mock data for stakeholder register
   const stakeholders = [
+    // --- NQL (new) กระทรวงเกษตร ---
+    {
+      type: "หน่วยงาน",
+      name: "กระทรวงเกษตรและสหกรณ์ (MOAC)",
+      role: "ส่งเสริมและสนับสนุนเกษตรกร บริหารโครงการผลิตสมุนไพร",
+      interest: "การเพิ่มประสิทธิภาพการผลิตและมาตรฐานสมุนไพร",
+      influence: "High" as const
+    },
+    // --- NQL (new) กรมวิทยาการ การแพทย์ ---
+    {
+      type: "หน่วยงาน",
+      name: "กรมวิทยาศาสตร์การแพทย์ (DMSc)",
+      role: "วิเคราะห์ทดสอบคุณภาพและมาตรฐานสมุนไพร",
+      interest: "ผลการวิเคราะห์และรับรองมาตรฐาน",
+      influence: "Medium" as const
+    },
     {
       type: "หน่วยงาน",
       name: "กรมแพทย์แผนไทยและการแพทย์ทางเลือก (DTM)",
