@@ -12,19 +12,28 @@ import { useToast } from "@/hooks/use-toast";
 interface EnhancedTrace {
   id: string;
   herb: string;
-  herbName?: string;
   event: string;
   timestamp: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
   referenceCode?: string;
-  location?: string;
-  verifiedBy?: string;
-  userId?: string;
+  farmId: number;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  qualityGrade: "A" | "B" | "C" | "Premium";
   herbId?: string;
+  userId?: string;
+  herbName?: string;
+  verifiedBy?: string;
+  certifications: string[];
 }
 
 export default function TraceabilityView() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [traces, setTraces] = useState<EnhancedTrace[]>(generateTraces(100));
+  const [traces, setTraces] = useState<EnhancedTrace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
@@ -34,7 +43,8 @@ export default function TraceabilityView() {
         setIsLoading(true);
         await new Promise(resolve => setTimeout(resolve, 500));
         const dashboardData = getDashboardData();
-        setTraces(dashboardData.traces as EnhancedTrace[]);
+        // Type assertion to treat the data as EnhancedTrace[]
+        setTraces(dashboardData.traces as unknown as EnhancedTrace[]);
       } catch (error) {
         console.error("Error loading trace data:", error);
         toast({
@@ -145,7 +155,7 @@ export default function TraceabilityView() {
 
         <div className="mt-8">
           <TraceView 
-            traces={filteredTraces}
+            traces={filteredTraces as any[]}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />

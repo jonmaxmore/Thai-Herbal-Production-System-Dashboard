@@ -42,13 +42,59 @@ export interface HerbData {
 }
 
 // Enhanced Trace type to include additional properties
-export interface EnhancedTrace extends Trace {
+export interface EnhancedTrace extends Partial<Trace> {
   id: string;
   herbId: string;
+  herb: string;
+  event: string;
+  timestamp: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
+  referenceCode?: string;
+  farmId: number;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  qualityGrade: "A" | "B" | "C" | "Premium";
   userId?: string;
   herbName?: string;
   verifiedBy?: string;
+  certifications: string[];
 }
+
+// Herb properties and compound database
+const herbProperties = {
+  "ใบบัวบก": {
+    englishName: "Gotu Kola",
+    properties: ["Anti-inflammatory", "Wound healing", "Memory enhancement"],
+    activeCompounds: ["Asiaticoside", "Madecassoside", "Asiatic acid"],
+    traditionalUses: ["Skin conditions", "Cognitive function", "Longevity"],
+    scientificReferences: ["Journal of Ethnopharmacology 2018", "Phytomedicine 2020"]
+  },
+  "ขมิ้น": {
+    englishName: "Turmeric",
+    properties: ["Anti-inflammatory", "Antioxidant", "Antimicrobial"],
+    activeCompounds: ["Curcumin", "Demethoxycurcumin", "Bisdemethoxycurcumin"],
+    traditionalUses: ["Digestive disorders", "Wound healing", "Joint pain"],
+    scientificReferences: ["PLOS ONE 2019", "Journal of Medicinal Food 2021"]
+  },
+  "ขิง": {
+    englishName: "Ginger",
+    properties: ["Anti-nausea", "Anti-inflammatory", "Analgesic"],
+    activeCompounds: ["Gingerol", "Shogaol", "Zingerone"],
+    traditionalUses: ["Digestive aid", "Cold remedy", "Motion sickness"],
+    scientificReferences: ["Food & Function 2019", "International Journal of Preventive Medicine 2020"]
+  },
+  "กระชาย": {
+    englishName: "Lesser Galangal",
+    properties: ["Antimicrobial", "Antioxidant", "Aphrodisiac"],
+    activeCompounds: ["Flavonoids", "Terpenoids", "Phenolic compounds"],
+    traditionalUses: ["Male vitality", "Immune support", "Respiratory health"],
+    scientificReferences: ["Journal of Ethnopharmacology 2022", "Phytotherapy Research 2021"]
+  }
+};
 
 // Create a consistent database with relationships between entities
 export interface MockDatabase {
@@ -92,38 +138,6 @@ export interface MockDatabase {
     };
   }>;
 }
-
-// Herb properties and compound database
-const herbProperties = {
-  "ใบบัวบก": {
-    englishName: "Gotu Kola",
-    properties: ["Anti-inflammatory", "Wound healing", "Memory enhancement"],
-    activeCompounds: ["Asiaticoside", "Madecassoside", "Asiatic acid"],
-    traditionalUses: ["Skin conditions", "Cognitive function", "Longevity"],
-    scientificReferences: ["Journal of Ethnopharmacology 2018", "Phytomedicine 2020"]
-  },
-  "ขมิ้น": {
-    englishName: "Turmeric",
-    properties: ["Anti-inflammatory", "Antioxidant", "Antimicrobial"],
-    activeCompounds: ["Curcumin", "Demethoxycurcumin", "Bisdemethoxycurcumin"],
-    traditionalUses: ["Digestive disorders", "Wound healing", "Joint pain"],
-    scientificReferences: ["PLOS ONE 2019", "Journal of Medicinal Food 2021"]
-  },
-  "ขิง": {
-    englishName: "Ginger",
-    properties: ["Anti-nausea", "Anti-inflammatory", "Analgesic"],
-    activeCompounds: ["Gingerol", "Shogaol", "Zingerone"],
-    traditionalUses: ["Digestive aid", "Cold remedy", "Motion sickness"],
-    scientificReferences: ["Food & Function 2019", "International Journal of Preventive Medicine 2020"]
-  },
-  "กระชาย": {
-    englishName: "Lesser Galangal",
-    properties: ["Antimicrobial", "Antioxidant", "Aphrodisiac"],
-    activeCompounds: ["Flavonoids", "Terpenoids", "Phenolic compounds"],
-    traditionalUses: ["Male vitality", "Immune support", "Respiratory health"],
-    scientificReferences: ["Journal of Ethnopharmacology 2022", "Phytotherapy Research 2021"]
-  }
-};
 
 // Generate relationships between entities
 const createRelatedData = (): MockDatabase => {
@@ -826,7 +840,7 @@ export const getDashboardData = () => {
       return {
         ...trace,
         herbName: herb?.name || 'Unknown',
-        verifiedBy: user?.fullName
+        verifiedBy: user?.fullName || undefined
       };
     });
   
@@ -849,44 +863,4 @@ export const getDashboardData = () => {
   
   // Get transaction totals
   const { totalSales, pendingOrders } = getTransactionTotals(
-    Object.values(mockDatabase.transactions)
-  );
-
-  // Get recent inspection processes
-  const recentInspections = Object.values(mockDatabase.inspectionProcesses)
-    .sort((a, b) => {
-      const dateA = a.completionDate || a.startDate;
-      const dateB = b.completionDate || b.startDate;
-      return dateB.getTime() - dateA.getTime();
-    })
-    .slice(0, 10)
-    .map(process => {
-      const herb = process.herbId ? mockDatabase.herbs[process.herbId] : undefined;
-      const inspector = process.inspectorId ? mockDatabase.users[process.inspectorId] : undefined;
-      const farmer = process.farmerId ? mockDatabase.farmers[process.farmerId] : undefined;
-      
-      return {
-        ...process,
-        herbName: herb?.name || 'Unknown',
-        inspectorName: inspector?.fullName,
-        farmerName: farmer?.name
-      };
-    });
-  
-  return {
-    farmers: Object.values(mockDatabase.farmers),
-    traces: recentTraces,
-    gapcStatus,
-    euGmpStatus,
-    dttmStatus,
-    userStats,
-    transactions,
-    totalSales,
-    pendingOrders,
-    processStats,
-    stakeholdersByRole,
-    stakeholderInvolvement,
-    recentInspections,
-    inspectionProcesses: Object.values(mockDatabase.inspectionProcesses)
-  };
-};
+    Object.

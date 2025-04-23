@@ -200,7 +200,7 @@ export interface Farm {
 
 // Trace interface with expanded metadata
 export interface Trace {
-  id: number;
+  id: string; // Changed from number to string for consistency
   herb: string;
   event: string;
   timestamp: string;
@@ -337,7 +337,7 @@ export function generateTraces(count = 100): Trace[] {
     const qualityGrade = qualityGrades[Math.floor(Math.random() * qualityGrades.length)];
     
     traces.push({
-      id: i,
+      id: i.toString(), // Changed to string to match the Trace interface
       herb,
       event,
       timestamp,

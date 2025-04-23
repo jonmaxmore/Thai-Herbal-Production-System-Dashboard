@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HerbSidebar from "@/components/HerbSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useRoleAccess, PageType } from "@/hooks/use-role-access";
+import { useRoleAccess, RolePageType as PageType } from "@/hooks/use-role-access";
 import { useToast } from "@/hooks/use-toast";
 
 interface HerbTraceLayoutProps {

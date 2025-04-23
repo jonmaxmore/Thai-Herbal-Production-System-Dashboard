@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PageType, useRoleAccess } from '@/hooks/use-role-access';
+import { RolePageType as PageType, useRoleAccess } from '@/hooks/use-role-access';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
   Shield, 

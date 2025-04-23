@@ -11,6 +11,28 @@ import SettingsPanel from "./herb-trace/SettingsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getDashboardData } from "@/utils/mockDatabase";
 
+interface EnhancedTrace {
+  id: string;
+  herb: string;
+  event: string;
+  timestamp: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
+  referenceCode?: string;
+  farmId: number;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  qualityGrade: "A" | "B" | "C" | "Premium";
+  herbId?: string;
+  userId?: string;
+  herbName?: string;
+  verifiedBy?: string;
+  certifications: string[];
+}
+
 export default function HerbDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);
@@ -101,7 +123,7 @@ export default function HerbDashboard() {
           {/* Trace View with Search & QR Code Support */}
           {activeTab === "trace" && (
             <TraceView 
-              traces={traces}
+              traces={traces as unknown as any[]}
               searchTerm=""
               setSearchTerm={() => {}}
             />

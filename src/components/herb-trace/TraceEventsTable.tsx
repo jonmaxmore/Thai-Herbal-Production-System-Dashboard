@@ -3,8 +3,32 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Trace } from "@/utils/herbData";
 
-interface EnhancedTrace extends Trace {
+// Define EnhancedTrace to include additional properties used in the component
+interface EnhancedTrace {
   id: string;
+  herb: string;
+  event: string;
+  timestamp: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
+  referenceCode?: string;
+  farmId: number;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  qualityGrade: "A" | "B" | "C" | "Premium";
+  moistureLevel?: number;
+  notes?: string;
+  inspector?: string;
+  inspectionReport?: string;
+  temperature?: number;
+  humidity?: number;
+  transportMethod?: string;
+  destinationName?: string;
+  destinationContact?: string;
+  certifications: string[];
   herbId?: string;
   userId?: string;
   herbName?: string;
