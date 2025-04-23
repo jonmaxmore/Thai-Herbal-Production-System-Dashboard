@@ -9,9 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, PackageSearch, FileText, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+interface EnhancedTrace {
+  id: string;
+  herb: string;
+  herbName?: string;
+  event: string;
+  timestamp: string;
+  referenceCode?: string;
+  location?: string;
+  verifiedBy?: string;
+  userId?: string;
+  herbId?: string;
+}
+
 export default function TraceabilityView() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [traces, setTraces] = useState(generateTraces(100));
+  const [traces, setTraces] = useState<EnhancedTrace[]>(generateTraces(100));
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
@@ -21,7 +34,7 @@ export default function TraceabilityView() {
         setIsLoading(true);
         await new Promise(resolve => setTimeout(resolve, 500));
         const dashboardData = getDashboardData();
-        setTraces(dashboardData.traces);
+        setTraces(dashboardData.traces as EnhancedTrace[]);
       } catch (error) {
         console.error("Error loading trace data:", error);
         toast({

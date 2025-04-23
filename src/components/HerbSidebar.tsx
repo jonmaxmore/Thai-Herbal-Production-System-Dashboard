@@ -33,25 +33,13 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { PageType, useRoleAccess } from '@/hooks/use-role-access';
+import { RolePageType, useRoleAccess } from '@/hooks/use-role-access';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { WorkflowStatus } from './AccessControl';
 
-declare module '@/hooks/use-role-access' {
-  export type PageType = 
-    | 'dashboard' 
-    | 'herbs' 
-    | 'trace' 
-    | 'certification' 
-    | 'map' 
-    | 'settings' 
-    | 'marketplace'
-    | 'overview';
-}
-
 interface NavItem {
-  id: PageType;
+  id: RolePageType;
   label: string;
   icon: React.ElementType;
   path: string;
@@ -93,7 +81,7 @@ export default function HerbSidebar({
   
   const navItems: NavItem[] = [
     { 
-      id: 'overview' as PageType, 
+      id: 'overview', 
       label: 'ภาพรวมโครงการ', 
       icon: Info, 
       path: '/herb-trace/overview', 
@@ -107,28 +95,28 @@ export default function HerbSidebar({
       section: 'main' 
     },
     { 
-      id: 'farms' as PageType, 
+      id: 'farms', 
       label: 'จัดการแปลงปลูก', 
       icon: Leaf, 
       path: '/herb-trace/farms', 
       section: 'farm' 
     },
     { 
-      id: 'activities' as PageType, 
+      id: 'activities', 
       label: 'บันทึกกิจกรรม', 
       icon: Activity, 
       path: '/herb-trace/activities', 
       section: 'farm' 
     },
     { 
-      id: 'harvest' as PageType, 
+      id: 'harvest', 
       label: 'การเก็บเกี่ยว', 
       icon: PlaneTakeoff,
       path: '/herb-trace/harvest', 
       section: 'farm' 
     },
     { 
-      id: 'weather' as PageType, 
+      id: 'weather', 
       label: 'สภาพอากาศ', 
       icon: Cloud, 
       path: '/herb-trace/weather', 
@@ -321,7 +309,7 @@ export default function HerbSidebar({
       .sort((a, b) => a.label.localeCompare(b.label));
   };
 
-  const handleTabChange = (tabId: PageType, path: string) => {
+  const handleTabChange = (tabId: RolePageType, path: string) => {
     if (!canView(tabId)) {
       toast({
         variant: "destructive",
@@ -350,7 +338,7 @@ export default function HerbSidebar({
     navigate("/");
   };
 
-  const getPermissionIcon = (page: PageType) => {
+  const getPermissionIcon = (page: RolePageType) => {
     if (!canView(page)) return <Lock className="h-3 w-3 text-red-600" />;
     return <CheckCircle className="h-3 w-3 text-green-600" />;
   };

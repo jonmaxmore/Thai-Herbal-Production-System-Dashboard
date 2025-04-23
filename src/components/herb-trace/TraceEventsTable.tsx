@@ -4,6 +4,9 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Trace } from "@/utils/herbData";
 
 interface EnhancedTrace extends Trace {
+  id: string;
+  herbId?: string;
+  userId?: string;
   herbName?: string;
   verifiedBy?: string;
 }

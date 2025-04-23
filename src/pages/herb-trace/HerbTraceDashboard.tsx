@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck, Activity, TestTube, CheckCircle, Package, Database, FileText, Flask, Microscope, Factory } from "lucide-react";
+import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck, Activity, TestTube, CheckCircle, Package, Database, FileText, FlaskConical, Microscope, Factory } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";

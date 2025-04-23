@@ -29,24 +29,33 @@ export type ProcessStatus = "Not Started" | "In Progress" | "Passed" | "Failed" 
 // Herb inspection processes
 export type InspectionProcess = "Lab Testing" | "GACP Certification" | "EU-GMP Certification" | "DTTM Certification" | "Quality Control" | "Market Approval";
 
+// Enhanced Herb type to fix type issues
+export interface HerbData {
+  id: string;
+  name: string;
+  farmerId?: string;
+  englishName?: string;
+  properties?: string[];
+  activeCompounds?: string[];
+  traditionalUses?: string[];
+  scientificReferences?: string[];
+}
+
+// Enhanced Trace type to include additional properties
+export interface EnhancedTrace extends Trace {
+  id: string;
+  herbId: string;
+  userId?: string;
+  herbName?: string;
+  verifiedBy?: string;
+}
+
 // Create a consistent database with relationships between entities
 export interface MockDatabase {
   users: Record<UserId, typeof generatedUsers[0]>;
   farmers: Record<FarmerId, Farm & { userId?: UserId }>;
-  herbs: Record<HerbId, (typeof herbList[0]) & { 
-    id: HerbId; 
-    farmerId?: FarmerId;
-    englishName?: string;
-    properties?: string[];
-    activeCompounds?: string[];
-    traditionalUses?: string[];
-    scientificReferences?: string[];
-  }>;
-  traces: Record<TraceId, Trace & { 
-    id: string;
-    herbId: HerbId;
-    userId?: UserId;
-  }>;
+  herbs: Record<HerbId, HerbData>;
+  traces: Record<TraceId, EnhancedTrace>;
   transactions: Record<TransactionId, Transaction & {
     id: string;
     buyerId?: UserId;
@@ -194,7 +203,9 @@ const createRelatedData = (): MockDatabase => {
       ...trace,
       id: traceId,
       herbId,
-      userId
+      userId,
+      herbName: herbsArray[randomHerbIndex].name,
+      verifiedBy: userId ? users[userId]?.fullName : undefined
     };
   });
 
@@ -544,9 +555,7 @@ export const getHerbStakeholders = (herbId: string) => {
   
   // Certification officers
   const certProcesses = Object.values(mockDatabase.inspectionProcesses)
-    .filter(p => p.herbId === herbId && 
-      ["GACP Certification", "EU-GMP Certification", "DTTM Certification"].includes(p.processType) && 
-      p.inspectorId);
+    .filter(p => ["GACP Certification", "EU-GMP Certification", "DTTM Certification"].includes(p.processType) && p.inspectorId);
   
   certProcesses.forEach(process => {
     if (process.inspectorId && mockDatabase.users[process.inspectorId]) {
