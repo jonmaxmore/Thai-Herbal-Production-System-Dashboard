@@ -6,7 +6,7 @@ import { generateTraces, getDashboardData } from "@/utils/mockDatabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QrCode, PackageSearch, FileText, Leaf, Calendar } from "lucide-react";
+import { QrCode, PackageSearch, FileText, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function TraceabilityView() {

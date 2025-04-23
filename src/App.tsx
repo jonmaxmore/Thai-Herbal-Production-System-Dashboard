@@ -1,53 +1,38 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-// Import pages
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import Login from "./pages/shared/Login";
-import RoleSelector from "./components/RoleSelector";
-
-// Herb Trace pages
+import NotFound from "./pages/NotFound";
 import HerbTraceDashboard from "./pages/herb-trace/HerbTraceDashboard";
 import HerbCatalog from "./pages/herb-trace/HerbCatalog";
 import TraceabilityView from "./pages/herb-trace/TraceabilityView";
 import CertificationView from "./pages/herb-trace/CertificationView";
-import MapViewPage from "./pages/herb-trace/MapView";
+import MapView from "./pages/herb-trace/MapView";
 import SettingsView from "./pages/herb-trace/SettingsView";
 import Marketplace from "./pages/herb-trace/Marketplace";
+import PlatformOverview from "./pages/herb-trace/PlatformOverview";
 
-const queryClient = new QueryClient();
+import { Toaster } from "./components/ui/toaster";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/herb-trace/dashboard" element={<HerbTraceDashboard />} />
+        <Route path="/herb-trace/herbs" element={<HerbCatalog />} />
+        <Route path="/herb-trace/trace" element={<TraceabilityView />} />
+        <Route path="/herb-trace/certification" element={<CertificationView />} />
+        <Route path="/herb-trace/map" element={<MapView />} />
+        <Route path="/herb-trace/settings" element={<SettingsView />} />
+        <Route path="/herb-trace/marketplace" element={<Marketplace />} />
+        <Route path="/herb-trace/overview" element={<PlatformOverview />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/role-selector" element={<RoleSelector />} />
-          <Route path="/index" element={<Index />} />
-          
-          {/* Herb Trace Routes */}
-          <Route path="/herb-trace/dashboard" element={<HerbTraceDashboard />} />
-          <Route path="/herb-trace/herbs" element={<HerbCatalog />} />
-          <Route path="/herb-trace/trace" element={<TraceabilityView />} />
-          <Route path="/herb-trace/certification" element={<CertificationView />} />
-          <Route path="/herb-trace/map" element={<MapViewPage />} />
-          <Route path="/herb-trace/settings" element={<SettingsView />} />
-          <Route path="/herb-trace/marketplace" element={<Marketplace />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;

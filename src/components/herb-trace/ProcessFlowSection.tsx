@@ -31,11 +31,11 @@ interface ProcessFlowSectionProps {
 
 // Status color mapping
 const statusColors: Record<ProcessStatus, string> = {
+  "Not Started": "#94a3b8",
+  "In Progress": "#3b82f6",
   "Passed": "#22c55e",
   "Failed": "#ef4444",
-  "In Progress": "#3b82f6",
   "Pending Review": "#eab308",
-  "Not Started": "#94a3b8",
   "Certified": "#14b8a6",
   "Expired": "#6b7280"
 };

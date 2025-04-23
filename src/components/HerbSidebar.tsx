@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -16,7 +15,7 @@ import {
   FileText,
   Book,
   Activity,
-  PlaneTakeoff, // Replacing Harvest icon
+  PlaneTakeoff,
   Shield,
   Award,
   PackageSearch,
@@ -28,7 +27,8 @@ import {
   Package,
   QrCode,
   Cloud,
-  FlaskConical // Replacing Microscope icon
+  FlaskConical,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,18 @@ import { PageType, useRoleAccess } from '@/hooks/use-role-access';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { WorkflowStatus } from './AccessControl';
+
+declare module '@/hooks/use-role-access' {
+  export type PageType = 
+    | 'dashboard' 
+    | 'herbs' 
+    | 'trace' 
+    | 'certification' 
+    | 'map' 
+    | 'settings' 
+    | 'marketplace'
+    | 'overview';
+}
 
 interface NavItem {
   id: PageType;
@@ -79,8 +91,14 @@ export default function HerbSidebar({
     }));
   };
   
-  // Define navigation items with their access requirements
   const navItems: NavItem[] = [
+    { 
+      id: 'overview' as PageType, 
+      label: 'ภาพรวมโครงการ', 
+      icon: Info, 
+      path: '/herb-trace/overview', 
+      section: 'main' 
+    },
     { 
       id: 'dashboard', 
       label: 'แดชบอร์ด', 
@@ -88,37 +106,35 @@ export default function HerbSidebar({
       path: '/herb-trace/dashboard', 
       section: 'main' 
     },
-    // Farm management section
     { 
-      id: 'farms', 
+      id: 'farms' as PageType, 
       label: 'จัดการแปลงปลูก', 
       icon: Leaf, 
       path: '/herb-trace/farms', 
       section: 'farm' 
     },
     { 
-      id: 'activities', 
+      id: 'activities' as PageType, 
       label: 'บันทึกกิจกรรม', 
       icon: Activity, 
       path: '/herb-trace/activities', 
       section: 'farm' 
     },
     { 
-      id: 'harvest', 
+      id: 'harvest' as PageType, 
       label: 'การเก็บเกี่ยว', 
-      icon: PlaneTakeoff, // Changed from Harvest to PlaneTakeoff
+      icon: PlaneTakeoff,
       path: '/herb-trace/harvest', 
       section: 'farm' 
     },
     { 
-      id: 'weather', 
+      id: 'weather' as PageType, 
       label: 'สภาพอากาศ', 
       icon: Cloud, 
       path: '/herb-trace/weather', 
       section: 'farm' 
     },
     
-    // Herbs catalog
     { 
       id: 'herbs', 
       label: 'สมุนไพร', 
@@ -127,7 +143,6 @@ export default function HerbSidebar({
       section: 'main'
     },
     
-    // Trace section
     { 
       id: 'trace', 
       label: 'ตรวจสอบย้อนกลับ', 
@@ -136,7 +151,6 @@ export default function HerbSidebar({
       section: 'main'
     },
     
-    // Certification section
     { 
       id: 'certification', 
       label: 'การรับรองมาตรฐาน', 
@@ -159,11 +173,10 @@ export default function HerbSidebar({
       section: 'certification' 
     },
     
-    // Laboratory section
     { 
       id: 'lab_samples', 
       label: 'ตัวอย่างวิเคราะห์', 
-      icon: FlaskConical, // Changed from Microscope to FlaskConical
+      icon: FlaskConical, 
       path: '/herb-trace/lab/samples', 
       section: 'lab' 
     },
@@ -182,7 +195,6 @@ export default function HerbSidebar({
       section: 'lab' 
     },
     
-    // Map view
     { 
       id: 'map', 
       label: 'แผนที่', 
@@ -191,7 +203,6 @@ export default function HerbSidebar({
       section: 'main'
     },
     
-    // Procurement and production section
     { 
       id: 'procurement', 
       label: 'จัดซื้อวัตถุดิบ', 
@@ -228,7 +239,6 @@ export default function HerbSidebar({
       section: 'market' 
     },
     
-    // Marketplace
     { 
       id: 'marketplace', 
       label: 'ตลาดกลาง', 
@@ -251,7 +261,6 @@ export default function HerbSidebar({
       section: 'market' 
     },
     
-    // Reports section
     { 
       id: 'reports', 
       label: 'รายงาน', 
@@ -267,7 +276,6 @@ export default function HerbSidebar({
       section: 'reports' 
     },
     
-    // Learning
     { 
       id: 'learning', 
       label: 'ห้องเรียนออนไลน์', 
@@ -276,7 +284,6 @@ export default function HerbSidebar({
       section: 'main'
     },
     
-    // Administration
     { 
       id: 'settings', 
       label: 'ตั้งค่า', 
@@ -300,16 +307,14 @@ export default function HerbSidebar({
     },
   ];
 
-  // Define sections with their Thai names
   const sections = [
     { id: 'farm', label: 'การเพาะปลูก', icon: Leaf },
     { id: 'certification', label: 'การรับรอง', icon: Shield },
-    { id: 'lab', label: 'ห้องปฏิบัติการ', icon: FlaskConical }, // Changed from Microscope to FlaskConical
+    { id: 'lab', label: 'ห้องปฏิบัติการ', icon: FlaskConical },
     { id: 'market', label: 'การผลิตและตลาด', icon: ShoppingCart },
     { id: 'reports', label: 'รายงานและวิเคราะห์', icon: BarChart2 }
   ];
 
-  // Filter nav items by section and access rights
   const getNavItemsBySection = (sectionId: string) => {
     return navItems
       .filter(item => item.section === sectionId && canView(item.id))
@@ -334,7 +339,6 @@ export default function HerbSidebar({
   };
 
   const handleLogout = () => {
-    // Clear user role and access from local storage
     localStorage.removeItem("userRole");
     localStorage.removeItem("roleAccess");
     
@@ -343,17 +347,14 @@ export default function HerbSidebar({
       description: "คุณได้ออกจากระบบแล้ว",
     });
     
-    // Navigate to login page
     navigate("/");
   };
 
-  // Get permission icon for a page
   const getPermissionIcon = (page: PageType) => {
     if (!canView(page)) return <Lock className="h-3 w-3 text-red-600" />;
     return <CheckCircle className="h-3 w-3 text-green-600" />;
   };
 
-  // Main navigation items shown directly
   const mainNavItems = getNavItemsBySection('main');
 
   return (
@@ -369,7 +370,6 @@ export default function HerbSidebar({
       </div>
 
       <nav className="space-y-1 flex-grow overflow-y-auto">
-        {/* Main navigation items */}
         {mainNavItems.map((item) => (
           <TooltipProvider key={item.id}>
             <Tooltip>
@@ -403,11 +403,9 @@ export default function HerbSidebar({
           </TooltipProvider>
         ))}
 
-        {/* Section collapsibles */}
         {sections.map((section) => {
           const sectionItems = getNavItemsBySection(section.id);
           
-          // Only show section if it has accessible items
           if (sectionItems.length === 0) return null;
           
           return (
