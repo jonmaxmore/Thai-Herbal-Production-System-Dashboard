@@ -4,7 +4,7 @@ import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StakeholderRegister } from "@/components/herb-trace/StakeholderRegister";
-import { Info, FileText, Users, FlowChart, Connection } from "lucide-react";
+import { Info, FileText, Users, Workflow, Link } from "lucide-react";
 
 export default function PlatformOverview() {
   // Mock data for stakeholder register
@@ -64,11 +64,11 @@ export default function PlatformOverview() {
               <span>ผู้มีส่วนได้ส่วนเสีย</span>
             </TabsTrigger>
             <TabsTrigger value="process" className="flex items-center gap-2">
-              <FlowChart className="h-4 w-4" />
+              <Workflow className="h-4 w-4" />
               <span>กระบวนการทำงาน</span>
             </TabsTrigger>
             <TabsTrigger value="relationships" className="flex items-center gap-2">
-              <Connection className="h-4 w-4" />
+              <Link className="h-4 w-4" />
               <span>ความเชื่อมโยง</span>
             </TabsTrigger>
           </TabsList>

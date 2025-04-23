@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
-  Building, Users, UserCheck, FlaskConical, Globe
+  Building, User, FlaskConical, Globe
 } from "lucide-react";
 
 type StakeholderInfluence = "High" | "Medium" | "Low";
@@ -28,7 +28,7 @@ export function StakeholderRegister({ stakeholders }: StakeholderRegisterProps) 
       case "หน่วยงาน":
         return <Building className="h-5 w-5 text-blue-500" />;
       case "บุคคล":
-        return <UserCheck className="h-5 w-5 text-green-500" />;
+        return <User className="h-5 w-5 text-green-500" />;
       case "บริการ":
         return <FlaskConical className="h-5 w-5 text-purple-500" />;
       default:

@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "./use-toast";
 import { UserRole } from "@/components/RoleSelector";
 
-// Page types that can be accessed
-export type PageType = 
+// Page types that can be accessed - rename to RolePageType to avoid conflict
+export type RolePageType = 
   | "dashboard"
   | "herbs"
   | "trace" 
@@ -13,6 +13,7 @@ export type PageType =
   | "map"
   | "settings"
   | "marketplace"
+  | "overview" // Add the overview page type
   // New pages from sitemap
   | "farms"
   | "activities"
@@ -60,6 +61,7 @@ export interface RoleAccess {
   map: PageAccess;
   settings: PageAccess;
   marketplace: PageAccess;
+  overview?: PageAccess; // Add the overview page access
   // New pages from sitemap
   farms?: PageAccess;
   activities?: PageAccess;
@@ -101,6 +103,7 @@ const defaultAccess: RoleAccess = {
   map: { view: false, edit: false, approve: false },
   settings: { view: false, edit: false, approve: false },
   marketplace: { view: false, edit: false, approve: false },
+  overview: { view: true, edit: false, approve: false }, // Add default access for overview
   // Initialize new page types with no access
   farms: { view: false, edit: false, approve: false },
   activities: { view: false, edit: false, approve: false },
@@ -168,27 +171,27 @@ export const useRoleAccess = () => {
   }, [navigate]);
 
   // Check if user has access to a specific page
-  const checkAccess = (page: PageType): PageAccess => {
+  const checkAccess = (page: RolePageType): PageAccess => {
     return access[page] || { view: false, edit: false, approve: false };
   };
 
   // Check if user has view access to a specific page
-  const canView = (page: PageType): boolean => {
+  const canView = (page: RolePageType): boolean => {
     return access[page]?.view === true;
   };
 
   // Check if user has edit access to a specific page
-  const canEdit = (page: PageType): boolean => {
+  const canEdit = (page: RolePageType): boolean => {
     return access[page]?.edit === true;
   };
 
   // Check if user has approve access to a specific page
-  const canApprove = (page: PageType): boolean => {
+  const canApprove = (page: RolePageType): boolean => {
     return access[page]?.approve === true;
   };
 
   // Get workflow status for a page
-  const getWorkflowStatus = (page: PageType): string => {
+  const getWorkflowStatus = (page: RolePageType): string => {
     const pageAccess = checkAccess(page);
     if (pageAccess.approve) return "approve";
     if (pageAccess.edit) return "edit";
@@ -197,7 +200,7 @@ export const useRoleAccess = () => {
   };
 
   // Protect a page based on view access
-  const protectPage = (page: PageType) => {
+  const protectPage = (page: RolePageType) => {
     if (!isLoading && !canView(page)) {
       toast({
         variant: "destructive",

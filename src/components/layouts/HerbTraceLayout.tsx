@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HerbSidebar from "@/components/HerbSidebar";
@@ -9,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface HerbTraceLayoutProps {
   children: React.ReactNode;
-  activeTab: string;
+  activeTab?: "dashboard" | "herbs" | "trace" | "certification" | "map" | "settings" | "marketplace" | "overview";
 }
 
 export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayoutProps) {
@@ -19,7 +18,6 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
   const { toast } = useToast();
   const { isLoading, canView } = useRoleAccess();
 
-  // Map activeTab to page type
   const getPageType = (): PageType => {
     switch (activeTab) {
       case "dashboard": return "dashboard";
@@ -29,11 +27,11 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
       case "map": return "map";
       case "settings": return "settings";
       case "marketplace": return "marketplace";
+      case "overview": return "overview";
       default: return "dashboard";
     }
   };
 
-  // Get appropriate title based on active tab
   const getTabTitle = () => {
     switch (activeTab) {
       case "dashboard": return "Dashboard";
@@ -43,11 +41,11 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
       case "map": return "Map View";
       case "settings": return "Settings";
       case "marketplace": return "Marketplace";
+      case "overview": return "Overview";
       default: return "HerbTrace";
     }
   };
 
-  // Check access for current page
   useEffect(() => {
     if (!isLoading) {
       const pageType = getPageType();
@@ -62,7 +60,6 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
     }
   }, [activeTab, isLoading, navigate]);
 
-  // If still loading access rights, show loading indicator
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -73,7 +70,6 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
 
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-green-50 to-blue-50">
-      {/* Mobile menu overlay */}
       {isMobile && isMobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -81,7 +77,6 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
         />
       )}
 
-      {/* Sidebar - desktop always visible, mobile conditional */}
       <div 
         className={`
           ${isMobile ? "fixed inset-y-0 left-0 z-50 transform transition-transform ease-in-out duration-300" : ""}
@@ -96,15 +91,12 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
         />
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile header */}
         <MobileHeader 
           title={getTabTitle()} 
           onMenuClick={() => setIsMobileMenuOpen(true)} 
         />
 
-        {/* Main content scrollable area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </div>

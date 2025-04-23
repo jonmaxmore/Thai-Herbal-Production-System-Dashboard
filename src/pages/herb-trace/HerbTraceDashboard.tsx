@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Leaf, Users, ClipboardCheck, AlertTriangle, ShoppingCart, CreditCard, UserCheck, Activity, TestTube, CheckCircle, Package, Database, FileText, Flask, Microscope, Factory } from "lucide-react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
@@ -70,7 +69,6 @@ export default function HerbTraceDashboard() {
     recentInspections
   } = dashboardData;
   
-  // Functions to navigate to different sections
   const navigateToSection = (section: string) => {
     navigate(`/herb-trace/${section}`);
   };
@@ -139,7 +137,6 @@ export default function HerbTraceDashboard() {
           />
         </div>
 
-        {/* Quick Access Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="bg-white hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-2">
