@@ -42,7 +42,7 @@ export interface HerbData {
 }
 
 // Enhanced Trace type to include additional properties
-export interface EnhancedTrace extends Partial<Trace> {
+export interface EnhancedTrace {
   id: string;
   herbId: string;
   herb: string;
