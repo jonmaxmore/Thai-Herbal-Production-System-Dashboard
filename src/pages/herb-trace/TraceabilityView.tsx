@@ -2,34 +2,12 @@
 import { useState, useEffect } from "react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import TraceView from "@/components/TraceView";
-import { generateTraces, getDashboardData } from "@/utils/mockDatabase";
+import { generateTraces, getDashboardData, EnhancedTrace } from "@/utils/mockDatabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, PackageSearch, FileText, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface EnhancedTrace {
-  id: string;
-  herb: string;
-  event: string;
-  timestamp: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  referenceCode?: string;
-  farmId: number;
-  batchNumber: string;
-  quantity: number;
-  unit: string;
-  qualityGrade: "A" | "B" | "C" | "Premium";
-  herbId?: string;
-  userId?: string;
-  herbName?: string;
-  verifiedBy?: string;
-  certifications: string[];
-}
 
 export default function TraceabilityView() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,8 +21,7 @@ export default function TraceabilityView() {
         setIsLoading(true);
         await new Promise(resolve => setTimeout(resolve, 500));
         const dashboardData = getDashboardData();
-        // Type assertion to treat the data as EnhancedTrace[]
-        setTraces(dashboardData.traces as unknown as EnhancedTrace[]);
+        setTraces(dashboardData.traces as EnhancedTrace[]);
       } catch (error) {
         console.error("Error loading trace data:", error);
         toast({

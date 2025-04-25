@@ -863,4 +863,42 @@ export const getDashboardData = () => {
   
   // Get transaction totals
   const { totalSales, pendingOrders } = getTransactionTotals(
-    Object.
+    Object.values(mockDatabase.transactions)
+  );
+  
+  // Get recent inspections with inspector details
+  const recentInspections = Object.values(mockDatabase.inspectionProcesses)
+    .sort((a, b) => {
+      if (!a.completionDate && !b.completionDate) return 0;
+      if (!a.completionDate) return -1;
+      if (!b.completionDate) return 1;
+      return b.completionDate.getTime() - a.completionDate.getTime();
+    })
+    .slice(0, 10)
+    .map(inspection => {
+      const herb = inspection.herbId ? mockDatabase.herbs[inspection.herbId] : undefined;
+      const inspector = inspection.inspectorId ? mockDatabase.users[inspection.inspectorId] : undefined;
+      
+      return {
+        ...inspection,
+        herbName: herb?.name || 'Unknown',
+        inspectorName: inspector?.fullName || 'System'
+      };
+    });
+  
+  return {
+    farmers: Object.values(mockDatabase.farmers),
+    traces: recentTraces,
+    gapcStatus,
+    euGmpStatus,
+    dttmStatus,
+    userStats,
+    transactions,
+    totalSales,
+    pendingOrders,
+    processStats,
+    stakeholdersByRole,
+    stakeholderInvolvement,
+    recentInspections
+  };
+};
