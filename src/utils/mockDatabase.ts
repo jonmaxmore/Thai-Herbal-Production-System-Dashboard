@@ -53,7 +53,7 @@ export interface EnhancedTrace extends Partial<Trace> {
     lng: number;
   };
   referenceCode?: string;
-  farmId: number;
+  farmId: string;
   batchNumber: string;
   quantity: number;
   unit: string;
@@ -218,6 +218,7 @@ const createRelatedData = (): MockDatabase => {
       id: traceId,
       herbId,
       userId,
+      farmId: String(trace.farmId),
       herbName: herbsArray[randomHerbIndex].name,
       verifiedBy: userId ? users[userId]?.fullName : undefined
     };

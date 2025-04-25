@@ -11,6 +11,7 @@ import MapView from "./pages/herb-trace/MapView";
 import SettingsView from "./pages/herb-trace/SettingsView";
 import Marketplace from "./pages/herb-trace/Marketplace";
 import PlatformOverview from "./pages/herb-trace/PlatformOverview";
+import RoleSelector from "./components/RoleSelector";
 
 import { Toaster } from "./components/ui/toaster";
 
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/role-selector" element={<RoleSelector />} />
         <Route path="/herb-trace/dashboard" element={<HerbTraceDashboard />} />
         <Route path="/herb-trace/herbs" element={<HerbCatalog />} />
         <Route path="/herb-trace/trace" element={<TraceabilityView />} />

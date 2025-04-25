@@ -29,6 +29,11 @@ export default function Login() {
           title: "Login successful",
           description: "Please select your role",
         });
+        
+        // Clear any previous role
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("roleAccess");
+        
         // Redirect to the role selector page
         navigate("/role-selector");
       } else {
@@ -46,8 +51,8 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 bg-herb-light rounded-full flex items-center justify-center">
-              <Leaf className="h-6 w-6 text-herb" />
+            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+              <Leaf className="h-6 w-6 text-green-600" />
             </div>
           </div>
           <CardTitle className="text-2xl text-center">Thai Herbal Production System</CardTitle>
