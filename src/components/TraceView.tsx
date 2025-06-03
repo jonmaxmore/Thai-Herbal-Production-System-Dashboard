@@ -49,7 +49,7 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold hidden md:block text-green-800">Seed-to-Sale Traceability</h2>
+      <h2 className="text-2xl font-bold hidden md:block text-green-800">Track and Trace</h2>
       
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" />

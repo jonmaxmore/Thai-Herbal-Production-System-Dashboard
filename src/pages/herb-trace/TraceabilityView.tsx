@@ -61,7 +61,7 @@ export default function TraceabilityView() {
     <HerbTraceLayout activeTab="trace">
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <h2 className="text-2xl font-bold text-green-800">ระบบตรวจสอบย้อนกลับสมุนไพร</h2>
+          <h2 className="text-2xl font-bold text-green-800">ระบบ Track and Trace สมุนไพร</h2>
           <div className="mt-4 md:mt-0 flex gap-2">
             <Button variant="outline" onClick={() => window.print()}>
               <FileText className="h-4 w-4 mr-2" />
