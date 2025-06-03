@@ -1,3 +1,4 @@
+
 import { UserRole } from "@/components/RoleSelector";
 import { 
   generateMockUsers, mockUsers as generatedUsers,
@@ -41,6 +42,17 @@ export interface HerbData {
   scientificReferences?: string[];
 }
 
+// Enhanced Farm type with GACP certification
+export interface EnhancedFarm extends Omit<Farm, 'id'> {
+  id: string;
+  userId?: UserId;
+  gacp?: {
+    status: "Passed" | "Failed" | "Pending" | "Expired";
+    issueDate?: Date;
+    expiryDate?: Date;
+  };
+}
+
 // Enhanced Trace type to include additional properties with consistent farmId type
 export interface EnhancedTrace {
   id: string;
@@ -53,7 +65,7 @@ export interface EnhancedTrace {
     lng: number;
   };
   referenceCode?: string;
-  farmId: string; // Changed to string for consistency
+  farmId: string;
   batchNumber: string;
   quantity: number;
   unit: string;
@@ -107,7 +119,7 @@ const herbProperties = {
 // Create a consistent database with relationships between entities
 export interface MockDatabase {
   users: Record<UserId, typeof generatedUsers[0]>;
-  farmers: Record<FarmerId, Farm & { userId?: UserId }>;
+  farmers: Record<FarmerId, EnhancedFarm>;
   herbs: Record<HerbId, HerbData>;
   traces: Record<TraceId, EnhancedTrace>;
   transactions: Record<TransactionId, Transaction & {
@@ -177,10 +189,19 @@ const createRelatedData = (): MockDatabase => {
     // Assign a real farmer user if available, otherwise keep as is
     const userId = index < farmerRoleUsers.length ? farmerRoleUsers[index].id : undefined;
     
+    // Add GACP certification status
+    const gacpStatuses: Array<"Passed" | "Failed" | "Pending" | "Expired"> = ["Passed", "Failed", "Pending", "Expired"];
+    const gacpStatus = gacpStatuses[Math.floor(Math.random() * gacpStatuses.length)];
+    
     farmers[farmerId] = {
       ...farmer,
       id: farmerId,
-      userId
+      userId,
+      gacp: {
+        status: gacpStatus,
+        issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+        expiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000)
+      }
     };
   });
 
@@ -230,7 +251,7 @@ const createRelatedData = (): MockDatabase => {
       id: traceId,
       herbId,
       userId,
-      farmId: farmerId, // Now consistently a string
+      farmId: farmerId,
       herbName: herbsArray[randomHerbIndex].name,
       verifiedBy: userId ? users[userId]?.fullName : undefined
     };
