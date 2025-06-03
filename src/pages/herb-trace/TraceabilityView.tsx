@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import HerbTraceLayout from "@/components/layouts/HerbTraceLayout";
 import TraceView from "@/components/TraceView";
-import { generateTraces, getDashboardData, EnhancedTrace } from "@/utils/mockDatabase";
+import { generateTraces, getDashboardData, EnhancedTrace, mockDatabase } from "@/utils/mockDatabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,22 @@ export default function TraceabilityView() {
         setIsLoading(true);
         await new Promise(resolve => setTimeout(resolve, 500));
         const dashboardData = getDashboardData();
-        setTraces(dashboardData.traces as EnhancedTrace[]);
+        
+        // Enhance traces with additional farm and cultivation details
+        const enhancedTraces = dashboardData.traces.map(trace => {
+          const farm = mockDatabase.farmers[trace.farmId];
+          const herb = mockDatabase.herbs[trace.herbId];
+          const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
+          
+          return {
+            ...trace,
+            farmDetails: farm,
+            herbDetails: herb,
+            farmerDetails: farmer
+          };
+        });
+        
+        setTraces(enhancedTraces as EnhancedTrace[]);
       } catch (error) {
         console.error("Error loading trace data:", error);
         toast({

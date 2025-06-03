@@ -41,8 +41,8 @@ export interface HerbData {
   scientificReferences?: string[];
 }
 
-// Enhanced Trace type to include additional properties
-export interface EnhancedTrace extends Partial<Trace> {
+// Enhanced Trace type to include additional properties with consistent farmId type
+export interface EnhancedTrace {
   id: string;
   herbId: string;
   herb: string;
@@ -53,7 +53,7 @@ export interface EnhancedTrace extends Partial<Trace> {
     lng: number;
   };
   referenceCode?: string;
-  farmId: string;
+  farmId: string; // Changed to string for consistency
   batchNumber: string;
   quantity: number;
   unit: string;
@@ -62,6 +62,14 @@ export interface EnhancedTrace extends Partial<Trace> {
   herbName?: string;
   verifiedBy?: string;
   certifications: string[];
+  // Additional optional properties from original Trace
+  temperature?: number;
+  humidity?: number;
+  moistureLevel?: number;
+  destinationName?: string;
+  destinationContact?: string;
+  transportMethod?: string;
+  notes?: string;
 }
 
 // Herb properties and compound database
@@ -213,12 +221,16 @@ const createRelatedData = (): MockDatabase => {
       userId = officerUsers[randomOfficerIndex].id;
     }
     
+    // Find the farmer for this herb to get consistent farmId
+    const herb = herbsArray[randomHerbIndex];
+    const farmerId = herb.farmerId || farmersArray[0].id;
+    
     traces[traceId] = {
       ...trace,
       id: traceId,
       herbId,
       userId,
-      farmId: String(trace.farmId),
+      farmId: farmerId, // Now consistently a string
       herbName: herbsArray[randomHerbIndex].name,
       verifiedBy: userId ? users[userId]?.fullName : undefined
     };

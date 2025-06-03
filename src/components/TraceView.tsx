@@ -4,12 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, QrCode, Info, Truck, Leaf, Thermometer, Droplets } from "lucide-react";
+import { Search, QrCode, Info, Truck, Leaf, Thermometer, Droplets, MapPin, User, Calendar, Award } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QRCode from "react-qr-code";
 import { Trace, Farm, generateFarmers } from "@/utils/herbData";
+import { mockDatabase } from "@/utils/mockDatabase";
 import StatusBadge from "./StatusBadge";
 import { Separator } from "@/components/ui/separator";
 
@@ -23,27 +24,50 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
+  const [selectedFarmer, setSelectedFarmer] = useState<any>(null);
+  const [herbJourney, setHerbJourney] = useState<any[]>([]);
 
   useEffect(() => {
     // Load farms data
     setFarms(generateFarmers(100));
   }, []);
 
-  // Find the farm associated with the selected trace
+  // Find the farm and farmer associated with the selected trace
   useEffect(() => {
     if (selectedTrace) {
-      const farm = farms.find(f => f.id === selectedTrace.farmId);
+      const farm = mockDatabase.farmers[selectedTrace.farmId];
+      const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
+      
+      // Get all traces for this herb to show journey
+      const journeyTraces = Object.values(mockDatabase.traces)
+        .filter(trace => trace.herbId === selectedTrace.herbId)
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
       setSelectedFarm(farm || null);
+      setSelectedFarmer(farmer);
+      setHerbJourney(journeyTraces);
     } else {
       setSelectedFarm(null);
+      setSelectedFarmer(null);
+      setHerbJourney([]);
     }
-  }, [selectedTrace, farms]);
+  }, [selectedTrace]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('th-TH', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -115,32 +139,97 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                             <Info className="h-4 w-4" /> View Details
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle className="text-xl text-green-800">
-                              Trace Information - {trace.referenceCode}
+                              Track and Trace Details - {trace.referenceCode}
                             </DialogTitle>
                           </DialogHeader>
                           
                           {selectedTrace && selectedFarm && (
-                            <Tabs defaultValue="trace" className="mt-4">
-                              <TabsList className="grid grid-cols-3 mb-4">
-                                <TabsTrigger value="trace">Trace Details</TabsTrigger>
-                                <TabsTrigger value="farm">Farm Information</TabsTrigger>
+                            <Tabs defaultValue="origin" className="mt-4">
+                              <TabsList className="grid grid-cols-4 mb-4">
+                                <TabsTrigger value="origin">ข้อมูลต้นทาง</TabsTrigger>
+                                <TabsTrigger value="cultivation">การปลูก</TabsTrigger>
+                                <TabsTrigger value="journey">ประวัติการเดินทาง</TabsTrigger>
                                 <TabsTrigger value="qrcode">QR Code</TabsTrigger>
                               </TabsList>
                               
-                              <TabsContent value="trace" className="p-2">
+                              <TabsContent value="origin" className="p-2">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                   <div className="space-y-6">
                                     <div>
                                       <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
-                                        <Leaf className="mr-2 h-5 w-5 text-green-600" /> สมุนไพร / Herb Information
+                                        <MapPin className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลต้นทาง / Origin Information
+                                      </h3>
+                                      <div className="bg-green-50 p-4 rounded-md space-y-2">
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">ฟาร์ม:</div>
+                                          <div className="col-span-2">{selectedFarm.name}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">จังหวัด:</div>
+                                          <div className="col-span-2">{selectedFarm.province}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">เลขทะเบียน:</div>
+                                          <div className="col-span-2">{selectedFarm.registrationNumber}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">พิกัด:</div>
+                                          <div className="col-span-2">{selectedTrace.location.lat.toFixed(4)}, {selectedTrace.location.lng.toFixed(4)}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">ก่อตั้งปี:</div>
+                                          <div className="col-span-2">{selectedFarm.establishedYear}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {selectedFarmer && (
+                                      <div>
+                                        <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
+                                          <User className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลเกษตรกร / Farmer Information
+                                        </h3>
+                                        <div className="bg-green-50 p-4 rounded-md space-y-2">
+                                          <div className="grid grid-cols-3 gap-2">
+                                            <div className="font-medium">ชื่อ:</div>
+                                            <div className="col-span-2">{selectedFarmer.fullName}</div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2">
+                                            <div className="font-medium">โทรศัพท์:</div>
+                                            <div className="col-span-2">{selectedFarmer.phoneNumber}</div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2">
+                                            <div className="font-medium">อีเมล:</div>
+                                            <div className="col-span-2">{selectedFarmer.email}</div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2">
+                                            <div className="font-medium">สถานะ:</div>
+                                            <div className="col-span-2">
+                                              <Badge className={selectedFarmer.isActive ? "bg-green-600" : "bg-gray-400"}>
+                                                {selectedFarmer.isActive ? "ใช้งานอยู่" : "ไม่ใช้งาน"}
+                                              </Badge>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="space-y-6">
+                                    <div>
+                                      <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
+                                        <Leaf className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลสมุนไพร / Herb Information
                                       </h3>
                                       <div className="bg-green-50 p-4 rounded-md space-y-2">
                                         <div className="grid grid-cols-3 gap-2">
                                           <div className="font-medium">สมุนไพร:</div>
                                           <div className="col-span-2">{selectedTrace.herb}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">เลขที่รุ่น:</div>
+                                          <div className="col-span-2">{selectedTrace.batchNumber}</div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
                                           <div className="font-medium">คุณภาพ:</div>
@@ -159,47 +248,90 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                           <div className="font-medium">จำนวน:</div>
                                           <div className="col-span-2">{selectedTrace.quantity} {selectedTrace.unit}</div>
                                         </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
+                                        <Award className="mr-2 h-5 w-5 text-green-600" /> การรับรองมาตรฐาน / Certifications
+                                      </h3>
+                                      <div className="bg-green-50 p-4 rounded-md space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <div className="font-medium">GACP:</div>
+                                          <StatusBadge status={selectedFarm.gacp} />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                          <div className="font-medium">EU-GMP:</div>
+                                          <StatusBadge status={selectedFarm.euGmp} />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                          <div className="font-medium">กรมแพทย์แผนไทยฯ:</div>
+                                          <StatusBadge status={selectedFarm.dttm} />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                          <div className="font-medium">เกษตรอินทรีย์:</div>
+                                          <Badge className={selectedFarm.organicCertified ? "bg-green-600" : "bg-gray-400"}>
+                                            {selectedFarm.organicCertified ? "รับรองแล้ว ✓" : "ไม่รับรอง ✗"}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </TabsContent>
+                              
+                              <TabsContent value="cultivation" className="p-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-6">
+                                    <div>
+                                      <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
+                                        <Leaf className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลการเพาะปลูก / Cultivation Details
+                                      </h3>
+                                      <div className="bg-green-50 p-4 rounded-md space-y-2">
                                         <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">เลขที่รุ่น:</div>
-                                          <div className="col-span-2">{selectedTrace.batchNumber}</div>
+                                          <div className="font-medium">พื้นที่เพาะปลูก:</div>
+                                          <div className="col-span-2">{selectedFarm.cultivationArea} ไร่</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">สมุนไพรหลัก:</div>
+                                          <div className="col-span-2">{selectedFarm.herb}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">วิธีการปลูก:</div>
+                                          <div className="col-span-2">{selectedFarm.organicCertified ? "เกษตรอินทรีย์" : "เกษตรทั่วไป"}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">ฤดูกาลปลูก:</div>
+                                          <div className="col-span-2">ตลอดปี</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">แหล่งน้ำ:</div>
+                                          <div className="col-span-2">น้ำฝน + บ่อบาดาล</div>
                                         </div>
                                       </div>
                                     </div>
                                     
                                     <div>
                                       <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
-                                        <Truck className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลติดตาม / Tracking Information
+                                        <Calendar className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลการตรวจสอบ / Inspection Data
                                       </h3>
                                       <div className="bg-green-50 p-4 rounded-md space-y-2">
                                         <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">เหตุการณ์:</div>
+                                          <div className="font-medium">ตรวจสอบล่าสุด:</div>
+                                          <div className="col-span-2">{formatDate(selectedFarm.lastInspectionDate)}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">กำหนดตรวจครั้งถัดไป:</div>
+                                          <div className="col-span-2">{formatDate(selectedFarm.nextInspectionDate)}</div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="font-medium">สถานะการตรวจสอบ:</div>
                                           <div className="col-span-2">
-                                            <Badge className={`${
-                                              selectedTrace.event === "Seeding" ? "bg-blue-500" :
-                                              selectedTrace.event === "Growing" ? "bg-emerald-500" :
-                                              selectedTrace.event === "Harvesting" ? "bg-amber-500" :
-                                              selectedTrace.event === "Processing" ? "bg-purple-500" :
-                                              selectedTrace.event === "Testing" ? "bg-sky-500" :
-                                              selectedTrace.event === "Packaging" ? "bg-indigo-500" :
-                                              selectedTrace.event === "Shipping" ? "bg-orange-500" :
-                                              selectedTrace.event === "Delivered" ? "bg-green-600" :
-                                              "bg-gray-500"
-                                            } text-white`}>
-                                              {selectedTrace.event}
-                                            </Badge>
+                                            <Badge className="bg-green-600">ผ่านการตรวจสอบ</Badge>
                                           </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">วันที่:</div>
-                                          <div className="col-span-2">{formatDate(selectedTrace.timestamp)}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">รหัสอ้างอิง:</div>
-                                          <div className="col-span-2">{selectedTrace.referenceCode}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">พิกัด:</div>
-                                          <div className="col-span-2">{selectedTrace.location.lat.toFixed(4)}, {selectedTrace.location.lng.toFixed(4)}</div>
                                         </div>
                                       </div>
                                     </div>
@@ -209,7 +341,7 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                     {(selectedTrace.temperature || selectedTrace.humidity) && (
                                       <div>
                                         <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
-                                          <Thermometer className="mr-2 h-5 w-5 text-green-600" /> สภาพแวดล้อม / Environmental Data
+                                          <Thermometer className="mr-2 h-5 w-5 text-green-600" /> สภาพแวดล้อม / Environmental Conditions
                                         </h3>
                                         <div className="bg-green-50 p-4 rounded-md space-y-2">
                                           {selectedTrace.temperature && (
@@ -234,36 +366,10 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                       </div>
                                     )}
                                     
-                                    {selectedTrace.destinationName && (
-                                      <div>
-                                        <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
-                                          <Truck className="mr-2 h-5 w-5 text-green-600" /> ข้อมูลการจัดส่ง / Shipping Information
-                                        </h3>
-                                        <div className="bg-green-50 p-4 rounded-md space-y-2">
-                                          <div className="grid grid-cols-3 gap-2">
-                                            <div className="font-medium">ปลายทาง:</div>
-                                            <div className="col-span-2">{selectedTrace.destinationName}</div>
-                                          </div>
-                                          {selectedTrace.destinationContact && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                              <div className="font-medium">ติดต่อ:</div>
-                                              <div className="col-span-2">{selectedTrace.destinationContact}</div>
-                                            </div>
-                                          )}
-                                          {selectedTrace.transportMethod && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                              <div className="font-medium">การขนส่ง:</div>
-                                              <div className="col-span-2">{selectedTrace.transportMethod}</div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                    
                                     {selectedTrace.certifications.length > 0 && (
                                       <div>
                                         <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
-                                          <QrCode className="mr-2 h-5 w-5 text-green-600" /> การรับรองมาตรฐาน / Certifications
+                                          <Award className="mr-2 h-5 w-5 text-green-600" /> การรับรองผลิตภัณฑ์ / Product Certifications
                                         </h3>
                                         <div className="bg-green-50 p-4 rounded-md">
                                           <div className="flex flex-wrap gap-2">
@@ -289,118 +395,73 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                 </div>
                               </TabsContent>
                               
-                              <TabsContent value="farm" className="p-2">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <div className="space-y-6">
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-green-800 mb-2">ข้อมูลฟาร์ม / Farm Information</h3>
-                                      <div className="bg-green-50 p-4 rounded-md space-y-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">ชื่อฟาร์ม:</div>
-                                          <div className="col-span-2">{selectedFarm.name}</div>
+                              <TabsContent value="journey" className="p-2">
+                                <div className="space-y-4">
+                                  <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                                    <Truck className="mr-2 h-5 w-5 text-green-600" /> ประวัติการเดินทางของสินค้า / Product Journey History
+                                  </h3>
+                                  
+                                  <div className="relative">
+                                    {herbJourney.map((journeyTrace, index) => (
+                                      <div key={journeyTrace.id} className="flex items-start mb-6">
+                                        <div className="flex flex-col items-center">
+                                          <div className={`w-4 h-4 rounded-full ${
+                                            journeyTrace.id === selectedTrace.id 
+                                              ? 'bg-green-600' 
+                                              : 'bg-blue-400'
+                                          }`}></div>
+                                          {index < herbJourney.length - 1 && (
+                                            <div className="w-0.5 h-12 bg-gray-300 mt-2"></div>
+                                          )}
                                         </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">จังหวัด:</div>
-                                          <div className="col-span-2">{selectedFarm.province}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">สมุนไพรหลัก:</div>
-                                          <div className="col-span-2">{selectedFarm.herb}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">พื้นที่เพาะปลูก:</div>
-                                          <div className="col-span-2">{selectedFarm.cultivationArea} ไร่</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">ก่อตั้งปี:</div>
-                                          <div className="col-span-2">{selectedFarm.establishedYear}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">เลขทะเบียน:</div>
-                                          <div className="col-span-2">{selectedFarm.registrationNumber}</div>
+                                        
+                                        <div className="ml-4 flex-1">
+                                          <div className={`p-4 rounded-lg ${
+                                            journeyTrace.id === selectedTrace.id 
+                                              ? 'bg-green-50 border-2 border-green-200' 
+                                              : 'bg-gray-50'
+                                          }`}>
+                                            <div className="flex items-center justify-between mb-2">
+                                              <h4 className="font-semibold text-gray-800">{journeyTrace.event}</h4>
+                                              <Badge className={`${
+                                                journeyTrace.event === "Seeding" ? "bg-blue-500" :
+                                                journeyTrace.event === "Growing" ? "bg-emerald-500" :
+                                                journeyTrace.event === "Harvesting" ? "bg-amber-500" :
+                                                journeyTrace.event === "Processing" ? "bg-purple-500" :
+                                                journeyTrace.event === "Testing" ? "bg-sky-500" :
+                                                journeyTrace.event === "Packaging" ? "bg-indigo-500" :
+                                                journeyTrace.event === "Shipping" ? "bg-orange-500" :
+                                                journeyTrace.event === "Delivered" ? "bg-green-600" :
+                                                "bg-gray-500"
+                                              } text-white`}>
+                                                {journeyTrace.event}
+                                              </Badge>
+                                            </div>
+                                            
+                                            <div className="text-sm text-gray-600 space-y-1">
+                                              <div><strong>วันที่:</strong> {formatDateTime(journeyTrace.timestamp)}</div>
+                                              <div><strong>รหัสอ้างอิง:</strong> {journeyTrace.referenceCode}</div>
+                                              <div><strong>พิกัด:</strong> {journeyTrace.location.lat.toFixed(4)}, {journeyTrace.location.lng.toFixed(4)}</div>
+                                              {journeyTrace.verifiedBy && (
+                                                <div><strong>ตรวจสอบโดย:</strong> {journeyTrace.verifiedBy}</div>
+                                              )}
+                                              {journeyTrace.notes && (
+                                                <div><strong>หมายเหตุ:</strong> {journeyTrace.notes}</div>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-green-800 mb-2">ข้อมูลเจ้าของ / Owner Information</h3>
-                                      <div className="bg-green-50 p-4 rounded-md space-y-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">ชื่อ:</div>
-                                          <div className="col-span-2">{selectedFarm.owner.name}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">โทรศัพท์:</div>
-                                          <div className="col-span-2">{selectedFarm.owner.phoneNumber}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">อีเมล:</div>
-                                          <div className="col-span-2">{selectedFarm.owner.email}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">เลขที่ใบอนุญาต:</div>
-                                          <div className="col-span-2">{selectedFarm.owner.licenseNumber}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">วันที่จดทะเบียน:</div>
-                                          <div className="col-span-2">{formatDate(selectedFarm.owner.registrationDate)}</div>
-                                        </div>
-                                      </div>
-                                    </div>
+                                    ))}
                                   </div>
                                   
-                                  <div className="space-y-6">
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-green-800 mb-2">สถานะการรับรอง / Certification Status</h3>
-                                      <div className="bg-green-50 p-4 rounded-md space-y-3">
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">GACP:</div>
-                                          <StatusBadge status={selectedFarm.gapc} />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">EU-GMP:</div>
-                                          <StatusBadge status={selectedFarm.euGmp} />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">กรมแพทย์แผนไทยฯ:</div>
-                                          <StatusBadge status={selectedFarm.dttm} />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">มาตรฐาน มอก.:</div>
-                                          <StatusBadge status={selectedFarm.tis} />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">เกษตรอินทรีย์:</div>
-                                          <Badge className={selectedFarm.organicCertified ? "bg-green-600" : "bg-gray-400"}>
-                                            {selectedFarm.organicCertified ? "รับรองแล้ว ✓" : "ไม่รับรอง ✗"}
-                                          </Badge>
-                                        </div>
-                                        <Separator />
-                                        <div className="flex items-center justify-between">
-                                          <div className="font-medium">รับรอง อย.:</div>
-                                          <Badge className={selectedFarm.fdaApproved ? "bg-green-600" : "bg-gray-400"}>
-                                            {selectedFarm.fdaApproved ? "รับรองแล้ว ✓" : "ไม่รับรอง ✗"}
-                                          </Badge>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-green-800 mb-2">ข้อมูลการตรวจสอบ / Inspection Information</h3>
-                                      <div className="bg-green-50 p-4 rounded-md space-y-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">ตรวจสอบล่าสุด:</div>
-                                          <div className="col-span-2">{formatDate(selectedFarm.lastInspectionDate)}</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="font-medium">กำหนดตรวจครั้งถัดไป:</div>
-                                          <div className="col-span-2">{formatDate(selectedFarm.nextInspectionDate)}</div>
-                                        </div>
-                                      </div>
+                                  <div className="bg-blue-50 p-4 rounded-md">
+                                    <h4 className="font-semibold text-blue-800 mb-2">สรุปการเดินทาง</h4>
+                                    <div className="text-sm text-blue-700 space-y-1">
+                                      <div>• จำนวนขั้นตอนทั้งหมด: {herbJourney.length} ขั้นตอน</div>
+                                      <div>• เริ่มต้น: {formatDateTime(herbJourney[0]?.timestamp || '')}</div>
+                                      <div>• ล่าสุด: {formatDateTime(herbJourney[herbJourney.length - 1]?.timestamp || '')}</div>
+                                      <div>• สถานะปัจจุบัน: {herbJourney[herbJourney.length - 1]?.event || 'N/A'}</div>
                                     </div>
                                   </div>
                                 </div>
@@ -420,7 +481,8 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                       batchNumber: selectedTrace.batchNumber,
                                       quantity: selectedTrace.quantity,
                                       unit: selectedTrace.unit,
-                                      qualityGrade: selectedTrace.qualityGrade
+                                      qualityGrade: selectedTrace.qualityGrade,
+                                      farmer: selectedFarmer?.fullName || 'Unknown'
                                     })} 
                                     size={250}
                                   />
@@ -436,7 +498,7 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                   
                                   <div className="mt-6 text-center">
                                     <p className="text-sm text-gray-500">
-                                      Scan this QR code to verify the authenticity and track this herb product
+                                      สแกน QR Code นี้เพื่อตรวจสอบความถูกต้องและติดตามผลิตภัณฑ์สมุนไพร
                                     </p>
                                   </div>
                                 </div>
