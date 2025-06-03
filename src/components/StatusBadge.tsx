@@ -1,13 +1,14 @@
 
 import { Badge } from "@/components/ui/badge";
 
-export type CertificationStatus = "Passed" | "Failed" | "Pending" | "Expired";
+export type CertificationStatus = "Passed" | "Failed" | "Pending" | "Expired" | "Other";
 
 const statusColors: Record<CertificationStatus, string> = {
   "Passed": "bg-green-600 text-white",
   "Failed": "bg-red-600 text-white", 
   "Pending": "bg-yellow-600 text-white",
-  "Expired": "bg-gray-600 text-white"
+  "Expired": "bg-gray-600 text-white",
+  "Other": "bg-gray-400 text-white"
 };
 
 interface StatusBadgeProps {
@@ -21,6 +22,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       case "Failed": return "❌ ";
       case "Pending": return "⏳ ";
       case "Expired": return "⏰ ";
+      case "Other": return "ℹ️ ";
       default: return "ℹ️ ";
     }
   };
