@@ -9,28 +9,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QRCode from "react-qr-code";
-import { Trace, Farm, generateFarmers } from "@/utils/herbData";
-import { mockDatabase } from "@/utils/mockDatabase";
+import { mockDatabase, EnhancedTrace, EnhancedFarm } from "@/utils/mockDatabase";
 import StatusBadge from "./StatusBadge";
 import { Separator } from "@/components/ui/separator";
 
 interface TraceViewProps {
-  traces: Trace[];
+  traces: EnhancedTrace[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
 }
 
 const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm }) => {
-  const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
-  const [farms, setFarms] = useState<Farm[]>([]);
-  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
+  const [selectedTrace, setSelectedTrace] = useState<EnhancedTrace | null>(null);
+  const [selectedFarm, setSelectedFarm] = useState<EnhancedFarm | null>(null);
   const [selectedFarmer, setSelectedFarmer] = useState<any>(null);
-  const [herbJourney, setHerbJourney] = useState<any[]>([]);
-
-  useEffect(() => {
-    // Load farms data
-    setFarms(generateFarmers(100));
-  }, []);
+  const [herbJourney, setHerbJourney] = useState<EnhancedTrace[]>([]);
 
   // Find the farm and farmer associated with the selected trace
   useEffect(() => {
@@ -258,17 +251,17 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                       <div className="bg-green-50 p-4 rounded-md space-y-3">
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">GACP:</div>
-                                          <StatusBadge status={selectedFarm.gacp} />
+                                          <StatusBadge status={selectedFarm.gacp?.status || "Pending"} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">EU-GMP:</div>
-                                          <StatusBadge status={selectedFarm.euGmp} />
+                                          <StatusBadge status={selectedFarm.euGmp || "Pending"} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">กรมแพทย์แผนไทยฯ:</div>
-                                          <StatusBadge status={selectedFarm.dttm} />
+                                          <StatusBadge status={selectedFarm.dttm || "Pending"} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
