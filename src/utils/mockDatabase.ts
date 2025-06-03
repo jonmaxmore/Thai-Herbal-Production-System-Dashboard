@@ -23,6 +23,9 @@ export type HerbId = string;
 export type TraceId = string;
 export type TransactionId = string;
 export type CertificationId = string;
+export type ActivityId = string;
+export type WeatherId = string;
+export type FieldId = string;
 
 // Process status for herb inspection workflow
 export type ProcessStatus = "Not Started" | "In Progress" | "Passed" | "Failed" | "Pending Review" | "Certified" | "Expired";
@@ -30,7 +33,29 @@ export type ProcessStatus = "Not Started" | "In Progress" | "Passed" | "Failed" 
 // Herb inspection processes
 export type InspectionProcess = "Lab Testing" | "GACP Certification" | "EU-GMP Certification" | "DTTM Certification" | "Quality Control" | "Market Approval";
 
-// Enhanced Herb type to fix type issues
+// Cannabis-focused herb list (70% cannabis varieties)
+const cannabisVarieties = [
+  "กัญชาพันธุ์ไทย", "กัญชาเชียงใหม่", "กัญชาอีสาน", "กัญชาใต้", "กัญชากรุงเทพ",
+  "กัญชาลาว", "กัญชาเขมร", "กัญชาพม่า", "กัญชาอินเดีย", "กัญชาเนปาล",
+  "กัญชาCBD", "กัญชาTHC", "กัญชาไฮบริด", "กัญชาอินดิกา", "กัญชาซาติวา",
+  "กัญชาทางการแพทย์", "กัญชาอุตสาหกรรม", "กัญชาเส้นใย", "กัญชาเมล็ด", "กัญชาใบ",
+  "กัญชาน้ำมัน", "กัญชาครีม", "กัญชาผง", "กัญชาสกัด", "กัญชาต้นแห้ง"
+];
+
+const traditionalHerbs = [
+  "ใบบัวบก", "ขมิ้น", "ขิง", "กระชาย", "ตะไคร้", "มะกรูด", "กะเพรา", 
+  "โหระพา", "สะระแหน่", "ผักชี", "กระเทียม", "หอมแดง", "พริกไทย"
+];
+
+// Combined herb list with 70% cannabis
+const enhancedHerbList = [
+  ...cannabisVarieties,
+  ...cannabisVarieties, // Duplicate to reach 70%
+  ...cannabisVarieties.slice(0, 10), // Additional cannabis for 70%+
+  ...traditionalHerbs
+];
+
+// Enhanced Herb type
 export interface HerbData {
   id: string;
   name: string;
@@ -40,12 +65,23 @@ export interface HerbData {
   activeCompounds?: string[];
   traditionalUses?: string[];
   scientificReferences?: string[];
+  category: "cannabis" | "traditional";
+  thcContent?: number; // For cannabis only
+  cbdContent?: number; // For cannabis only
 }
 
-// Enhanced Farm type with GACP certification
+// Enhanced Farm type with detailed information
 export interface EnhancedFarm extends Omit<Farm, 'id'> {
   id: string;
   userId?: UserId;
+  fields: FieldId[];
+  totalArea: number; // in rai
+  cannabisLicense?: {
+    number: string;
+    issueDate: Date;
+    expiryDate: Date;
+    type: "medical" | "industrial" | "research";
+  };
   gacp?: {
     status: "Passed" | "Failed" | "Pending" | "Expired";
     issueDate?: Date;
@@ -53,7 +89,64 @@ export interface EnhancedFarm extends Omit<Farm, 'id'> {
   };
 }
 
-// Enhanced Trace type to include additional properties with consistent farmId type
+// Field management interface
+export interface Field {
+  id: string;
+  farmId: string;
+  name: string;
+  area: number; // in rai
+  soilType: string;
+  irrigationType: string;
+  currentCrop?: string;
+  plantingDate?: Date;
+  expectedHarvestDate?: Date;
+  coordinates: {
+    lat: number;
+    lng: number;
+  }[];
+}
+
+// Farming activity interface
+export interface FarmingActivity {
+  id: string;
+  farmId: string;
+  fieldId?: string;
+  herbId?: string;
+  activityType: "planting" | "watering" | "fertilizing" | "pruning" | "harvesting" | "pest_control" | "soil_preparation" | "transplanting";
+  date: Date;
+  description: string;
+  quantity?: number;
+  unit?: string;
+  cost?: number;
+  laborHours?: number;
+  equipmentUsed?: string[];
+  notes?: string;
+  weather?: {
+    temperature: number;
+    humidity: number;
+    rainfall: number;
+  };
+}
+
+// Weather data interface
+export interface WeatherData {
+  id: string;
+  farmId: string;
+  date: Date;
+  temperature: {
+    min: number;
+    max: number;
+    avg: number;
+  };
+  humidity: number;
+  rainfall: number;
+  windSpeed: number;
+  soilMoisture: number;
+  uvIndex: number;
+  notes?: string;
+}
+
+// Enhanced Trace type with farming activity links
 export interface EnhancedTrace {
   id: string;
   herbId: string;
@@ -66,6 +159,8 @@ export interface EnhancedTrace {
   };
   referenceCode?: string;
   farmId: string;
+  fieldId?: string;
+  activityId?: string;
   batchNumber: string;
   quantity: number;
   unit: string;
@@ -74,7 +169,6 @@ export interface EnhancedTrace {
   herbName?: string;
   verifiedBy?: string;
   certifications: string[];
-  // Additional optional properties from original Trace
   temperature?: number;
   humidity?: number;
   moistureLevel?: number;
@@ -82,44 +176,15 @@ export interface EnhancedTrace {
   destinationContact?: string;
   transportMethod?: string;
   notes?: string;
+  thcLevel?: number; // For cannabis traces
+  cbdLevel?: number; // For cannabis traces
 }
 
-// Herb properties and compound database
-const herbProperties = {
-  "ใบบัวบก": {
-    englishName: "Gotu Kola",
-    properties: ["Anti-inflammatory", "Wound healing", "Memory enhancement"],
-    activeCompounds: ["Asiaticoside", "Madecassoside", "Asiatic acid"],
-    traditionalUses: ["Skin conditions", "Cognitive function", "Longevity"],
-    scientificReferences: ["Journal of Ethnopharmacology 2018", "Phytomedicine 2020"]
-  },
-  "ขมิ้น": {
-    englishName: "Turmeric",
-    properties: ["Anti-inflammatory", "Antioxidant", "Antimicrobial"],
-    activeCompounds: ["Curcumin", "Demethoxycurcumin", "Bisdemethoxycurcumin"],
-    traditionalUses: ["Digestive disorders", "Wound healing", "Joint pain"],
-    scientificReferences: ["PLOS ONE 2019", "Journal of Medicinal Food 2021"]
-  },
-  "ขิง": {
-    englishName: "Ginger",
-    properties: ["Anti-nausea", "Anti-inflammatory", "Analgesic"],
-    activeCompounds: ["Gingerol", "Shogaol", "Zingerone"],
-    traditionalUses: ["Digestive aid", "Cold remedy", "Motion sickness"],
-    scientificReferences: ["Food & Function 2019", "International Journal of Preventive Medicine 2020"]
-  },
-  "กระชาย": {
-    englishName: "Lesser Galangal",
-    properties: ["Antimicrobial", "Antioxidant", "Aphrodisiac"],
-    activeCompounds: ["Flavonoids", "Terpenoids", "Phenolic compounds"],
-    traditionalUses: ["Male vitality", "Immune support", "Respiratory health"],
-    scientificReferences: ["Journal of Ethnopharmacology 2022", "Phytotherapy Research 2021"]
-  }
-};
-
-// Create a consistent database with relationships between entities
+// Enhanced database interface
 export interface MockDatabase {
   users: Record<UserId, typeof generatedUsers[0]>;
   farmers: Record<FarmerId, EnhancedFarm>;
+  fields: Record<FieldId, Field>;
   herbs: Record<HerbId, HerbData>;
   traces: Record<TraceId, EnhancedTrace>;
   transactions: Record<TransactionId, Transaction & {
@@ -130,7 +195,7 @@ export interface MockDatabase {
   }>;
   certifications: Record<CertificationId, {
     id: CertificationId;
-    type: "gapc" | "euGmp" | "dttm";
+    type: "gapc" | "euGmp" | "dttm" | "cannabis_license";
     status: "Passed" | "Failed" | "Pending" | "Expired";
     farmerId: FarmerId;
     issuerId?: UserId;
@@ -142,6 +207,7 @@ export interface MockDatabase {
     id: string;
     herbId: HerbId;
     farmerId: FarmerId;
+    fieldId?: FieldId;
     processType: InspectionProcess;
     status: ProcessStatus;
     startDate: Date;
@@ -157,782 +223,471 @@ export interface MockDatabase {
       recommendedActions?: string[];
     };
   }>;
+  farmingActivities: Record<ActivityId, FarmingActivity>;
+  weatherData: Record<WeatherId, WeatherData>;
 }
 
-// Generate relationships between entities
-const createRelatedData = (): MockDatabase => {
-  // Generate base entities
-  const usersList = generatedUsers;
-  const farmersList = originalGenerateFarmers(100);
-  const tracesList = originalGenerateTraces(100);
-  const transactionsList = originalGenerateTransactions(50);
+// Generate Thai provinces for realistic location data
+const thaiProvinces = [
+  "เชียงใหม่", "เชียงราย", "น่าน", "แพร่", "แม่ฮ่องสอน", "ลำปาง", "ลำพูน", "อุตรดิตถ์",
+  "นครราชสีมา", "บุรีรัมย์", "สุรินทร์", "ศรีสะเกษ", "อุบลราชธานี", "ยโสธร", "อำนาจเจริญ",
+  "กาญจนบุรี", "ราชบุรี", "เพชรบุรี", "ประจวบคีรีขันธ์", "สุพรรณบุรี", "นครปฐม"
+];
 
-  // Create indexed collections
+// Generate consistent database with 1000 farmers and 6000+ inspections
+const createEnhancedDatabase = (): MockDatabase => {
   const users: MockDatabase['users'] = {};
   const farmers: MockDatabase['farmers'] = {};
+  const fields: MockDatabase['fields'] = {};
   const herbs: MockDatabase['herbs'] = {};
   const traces: MockDatabase['traces'] = {};
   const transactions: MockDatabase['transactions'] = {};
   const certifications: MockDatabase['certifications'] = {};
   const inspectionProcesses: MockDatabase['inspectionProcesses'] = {};
+  const farmingActivities: MockDatabase['farmingActivities'] = {};
+  const weatherData: MockDatabase['weatherData'] = {};
 
-  // Index users
+  // Generate 1000+ users with proper roles
+  const usersList = generateMockUsers(1200);
   usersList.forEach(user => {
     users[user.id] = user;
   });
 
-  // Connect farmers to users
-  const farmerRoleUsers = Object.values(users).filter(user => user.role === 'farmer');
+  // Get farmers from users (ensure we have enough farmer-role users)
+  const farmerUsers = Object.values(users).filter(u => u.role === 'farmer');
   
-  farmersList.forEach((farmer, index) => {
-    const farmerId = `F${String(index + 1).padStart(6, '0')}`;
-    // Assign a real farmer user if available, otherwise keep as is
-    const userId = index < farmerRoleUsers.length ? farmerRoleUsers[index].id : undefined;
+  // Generate 1000 farmers with linked user accounts
+  for (let i = 1; i <= 1000; i++) {
+    const farmerId = `F${String(i).padStart(6, '0')}`;
+    const province = thaiProvinces[Math.floor(Math.random() * thaiProvinces.length)];
     
-    // Add GACP certification status
-    const gacpStatuses: Array<"Passed" | "Failed" | "Pending" | "Expired"> = ["Passed", "Failed", "Pending", "Expired"];
-    const gacpStatus = gacpStatuses[Math.floor(Math.random() * gacpStatuses.length)];
+    // Link to user if available
+    const userId = i <= farmerUsers.length ? farmerUsers[i - 1].id : undefined;
     
+    // Generate cannabis license for 70% of farmers
+    const hasCannabisLicense = Math.random() < 0.7;
+    const cannabisLicense = hasCannabisLicense ? {
+      number: `CNB-${province.substring(0, 2)}-${new Date().getFullYear()}-${String(i).padStart(4, '0')}`,
+      issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+      expiryDate: new Date(Date.now() + (1 + Math.random() * 2) * 365 * 24 * 60 * 60 * 1000),
+      type: ["medical", "industrial", "research"][Math.floor(Math.random() * 3)] as "medical" | "industrial" | "research"
+    } : undefined;
+
+    const totalArea = Math.floor(Math.random() * 100) + 10; // 10-110 rai
+    const numFields = Math.floor(Math.random() * 5) + 1; // 1-5 fields per farm
+    const fieldIds: string[] = [];
+
+    // Generate fields for this farm
+    for (let f = 1; f <= numFields; f++) {
+      const fieldId = `${farmerId}_FIELD_${f}`;
+      fieldIds.push(fieldId);
+      
+      const fieldArea = totalArea / numFields;
+      const fieldLat = 13 + Math.random() * 7;
+      const fieldLng = 98 + Math.random() * 7;
+
+      fields[fieldId] = {
+        id: fieldId,
+        farmId: farmerId,
+        name: `แปลงที่ ${f}`,
+        area: fieldArea,
+        soilType: ["ดินร่วน", "ดินเหนียว", "ดินทราย", "ดินลูกรัง"][Math.floor(Math.random() * 4)],
+        irrigationType: ["น้ำฝน", "สปริงเกอร์", "ดริป", "ท่วม"][Math.floor(Math.random() * 4)],
+        coordinates: [
+          { lat: fieldLat, lng: fieldLng },
+          { lat: fieldLat + 0.001, lng: fieldLng },
+          { lat: fieldLat + 0.001, lng: fieldLng + 0.001 },
+          { lat: fieldLat, lng: fieldLng + 0.001 }
+        ]
+      };
+    }
+
     farmers[farmerId] = {
-      ...farmer,
       id: farmerId,
-      userId,
+      name: `ฟาร์มกัญชา ${i}`,
+      herb: hasCannabisLicense ? cannabisVarieties[Math.floor(Math.random() * cannabisVarieties.length)] : traditionalHerbs[Math.floor(Math.random() * traditionalHerbs.length)],
       gacp: {
-        status: gacpStatus,
+        status: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
         issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
         expiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000)
-      }
+      },
+      euGmp: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
+      dttm: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
+      tis: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
+      location: {
+        lat: 13 + Math.random() * 7,
+        lng: 98 + Math.random() * 7
+      },
+      owner: {
+        name: userId ? users[userId].fullName : `เกษตกร ${i}`,
+        phoneNumber: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
+        email: `farmer${i}@example.com`,
+        licenseNumber: `LIC-${i}`,
+        registrationDate: new Date(2020 + Math.random() * 4, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28)).toISOString()
+      },
+      province,
+      registrationNumber: `REG-${province}-${i}`,
+      organicCertified: Math.random() > 0.5,
+      lastInspectionDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+      nextInspectionDate: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+      fdaApproved: Math.random() > 0.3,
+      cultivationArea: Math.floor(Math.random() * 50) + 1,
+      establishedYear: 2015 + Math.floor(Math.random() * 8),
+      userId,
+      fields: fieldIds,
+      totalArea,
+      cannabisLicense
     };
-  });
+  }
 
-  // Connect herbs to farmers
-  const farmersArray = Object.values(farmers);
-  herbList.forEach((herb, index) => {
+  // Generate herbs with proper categorization
+  enhancedHerbList.forEach((herbName, index) => {
     const herbId = `H${String(index + 1).padStart(6, '0')}`;
-    // Assign to a random farmer
-    const randomFarmerIndex = Math.floor(Math.random() * farmersArray.length);
-    const farmerId = farmersArray[randomFarmerIndex].id;
+    const isCannabis = cannabisVarieties.includes(herbName);
     
-    // Add herb properties if available
-    const herbData = herbProperties[herb as keyof typeof herbProperties];
+    // Assign to random farmer
+    const farmersArray = Object.values(farmers);
+    const randomFarmer = farmersArray[Math.floor(Math.random() * farmersArray.length)];
     
     herbs[herbId] = {
       id: herbId,
-      name: herb,
-      farmerId,
-      ...(herbData || {})
+      name: herbName,
+      farmerId: randomFarmer.id,
+      category: isCannabis ? "cannabis" : "traditional",
+      thcContent: isCannabis ? Math.random() * 25 : undefined, // 0-25% THC
+      cbdContent: iscannabis ? Math.random() * 20 : undefined, // 0-20% CBD
+      properties: isCanvas ? ["Pain Relief", "Anti-inflammatory", "Anxiety Relief"] : ["Traditional Medicine", "Herbal Tea"],
+      activeCompounds: isCanvas ? ["THC", "CBD", "Terpenes"] : ["Natural Compounds"],
+      traditionalUses: isCanvas ? ["Medical Cannabis", "Industrial Hemp"] : ["Traditional Thai Medicine"]
     };
   });
 
-  // Connect traces to herbs and users
+  // Generate 6000+ inspection processes
+  const farmersArray = Object.values(farmers);
   const herbsArray = Object.values(herbs);
-  const officerUsers = Object.values(users).filter(
-    user => ['lab', 'ttm_officer', 'acfs_officer', 'customs_officer'].includes(user.role)
+  const inspectorUsers = Object.values(users).filter(u => 
+    ['lab', 'ttm_officer', 'acfs_officer', 'customs_officer'].includes(u.role)
   );
-  
-  tracesList.forEach((trace, index) => {
-    const traceId = `T${String(index + 1).padStart(6, '0')}`;
-    // Assign to a random herb
-    const randomHerbIndex = Math.floor(Math.random() * herbsArray.length);
-    const herbId = herbsArray[randomHerbIndex].id;
-    // Assign to a random officer if it's a verification event
-    let userId = undefined;
-    if (trace.event.includes('verification') || trace.event.includes('certified')) {
-      const randomOfficerIndex = Math.floor(Math.random() * officerUsers.length);
-      userId = officerUsers[randomOfficerIndex].id;
+
+  for (let i = 1; i <= 6500; i++) {
+    const processId = `P${String(i).padStart(6, '0')}`;
+    const randomFarmer = farmersArray[Math.floor(Math.random() * farmersArray.length)];
+    const randomHerb = herbsArray.filter(h => h.farmerId === randomFarmer.id)[0] || herbsArray[0];
+    const randomField = randomFarmer.fields[Math.floor(Math.random() * randomFarmer.fields.length)];
+    
+    const processTypes: InspectionProcess[] = [
+      "Lab Testing", "GACP Certification", "EU-GMP Certification", 
+      "DTTM Certification", "Quality Control", "Market Approval"
+    ];
+    
+    const processType = processTypes[Math.floor(Math.random() * processTypes.length)];
+    const inspector = inspectorUsers[Math.floor(Math.random() * inspectorUsers.length)];
+    
+    const statuses: ProcessStatus[] = ["Passed", "Failed", "In Progress", "Pending Review"];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    
+    inspectionProcesses[processId] = {
+      id: processId,
+      herbId: randomHerb.id,
+      farmerId: randomFarmer.id,
+      fieldId: randomField,
+      processType,
+      status,
+      startDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+      completionDate: status === "Passed" || status === "Failed" ? 
+        new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : undefined,
+      inspectorId: inspector.id,
+      notes: `ตรวจสอบ ${processType} สำหรับ ${randomHerb.name}`,
+      results: status === "Passed" || status === "Failed" ? {
+        passedCriteria: ["มาตรฐานคุณภาพ", "ความปลอดภัย", "การจัดเก็บ"],
+        failedCriteria: status === "Failed" ? ["ระดับสารพิษเกินกำหนด"] : [],
+        measurements: {
+          moisture: Math.random() * 15 + 5,
+          purity: Math.random() * 20 + 80,
+          thc: randomHerb.category === "cannabis" ? Math.random() * 25 : 0,
+          cbd: randomHerb.category === "cannabis" ? Math.random() * 20 : 0
+        },
+        recommendedActions: status === "Failed" ? ["ปรับปรุงกระบวนการ", "ตรวจสอบใหม่"] : []
+      } : undefined
+    };
+  }
+
+  // Generate farming activities (10+ activities per farm)
+  let activityCounter = 1;
+  farmersArray.forEach(farmer => {
+    const numActivities = Math.floor(Math.random() * 20) + 10; // 10-30 activities per farm
+    
+    for (let a = 1; a <= numActivities; a++) {
+      const activityId = `A${String(activityCounter).padStart(6, '0')}`;
+      activityCounter++;
+      
+      const activityTypes: FarmingActivity['activityType'][] = [
+        "planting", "watering", "fertilizing", "pruning", "harvesting", 
+        "pest_control", "soil_preparation", "transplanting"
+      ];
+      
+      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      const randomField = farmer.fields[Math.floor(Math.random() * farmer.fields.length)];
+      const farmerHerbs = herbsArray.filter(h => h.farmerId === farmer.id);
+      const randomHerb = farmerHerbs[Math.floor(Math.random() * farmerHerbs.length)];
+      
+      farmingActivities[activityId] = {
+        id: activityId,
+        farmId: farmer.id,
+        fieldId: randomField,
+        herbId: randomHerb?.id,
+        activityType,
+        date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+        description: `${activityType} สำหรับ ${randomHerb?.name || 'พืช'}`,
+        quantity: Math.floor(Math.random() * 100) + 1,
+        unit: ["กิโลกรัม", "ลิตร", "ถุง", "ต้น"][Math.floor(Math.random() * 4)],
+        cost: Math.floor(Math.random() * 5000) + 500,
+        laborHours: Math.floor(Math.random() * 8) + 1,
+        equipmentUsed: ["จอบ", "รดน้ำ", "ปุ่ย", "เครื่องตัด"].slice(0, Math.floor(Math.random() * 3) + 1),
+        notes: `กิจกรรม ${activityType} เสร็จสิ้น`,
+        weather: {
+          temperature: Math.floor(Math.random() * 10) + 25,
+          humidity: Math.floor(Math.random() * 30) + 60,
+          rainfall: Math.random() * 50
+        }
+      };
+    }
+  });
+
+  // Generate weather data (daily data for past year)
+  let weatherCounter = 1;
+  farmersArray.forEach(farmer => {
+    const daysBack = 365;
+    
+    for (let d = 0; d < daysBack; d++) {
+      const weatherId = `W${String(weatherCounter).padStart(6, '0')}`;
+      weatherCounter++;
+      
+      const date = new Date(Date.now() - d * 24 * 60 * 60 * 1000);
+      const temp = 25 + Math.random() * 10; // 25-35°C
+      
+      weatherData[weatherId] = {
+        id: weatherId,
+        farmId: farmer.id,
+        date,
+        temperature: {
+          min: temp - 5,
+          max: temp + 5,
+          avg: temp
+        },
+        humidity: Math.floor(Math.random() * 40) + 50, // 50-90%
+        rainfall: Math.random() * 100, // 0-100mm
+        windSpeed: Math.random() * 20, // 0-20 km/h
+        soilMoisture: Math.random() * 100, // 0-100%
+        uvIndex: Math.floor(Math.random() * 11), // 0-10
+        notes: Math.random() > 0.9 ? "สภาพอากาศผิดปกติ" : undefined
+      };
+    }
+  });
+
+  // Generate traces linked to activities
+  let traceCounter = 1;
+  Object.values(farmingActivities).forEach(activity => {
+    if (Math.random() > 0.3) { // 70% of activities generate traces
+      const traceId = `T${String(traceCounter).padStart(6, '0')}`;
+      traceCounter++;
+      
+      const farmer = farmers[activity.farmId];
+      const herb = activity.herbId ? herbs[activity.herbId] : undefined;
+      
+      traces[traceId] = {
+        id: traceId,
+        herbId: herb?.id || '',
+        herb: herb?.name || 'ไม่ระบุ',
+        event: activity.activityType,
+        timestamp: activity.date.toISOString(),
+        location: farmer.location,
+        referenceCode: `REF-${traceId}`,
+        farmId: farmer.id,
+        fieldId: activity.fieldId,
+        activityId: activity.id,
+        batchNumber: `BATCH-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+        quantity: activity.quantity || Math.floor(Math.random() * 100),
+        unit: activity.unit || "กิโลกรัม",
+        qualityGrade: ["A", "B", "C", "Premium"][Math.floor(Math.random() * 4)] as any,
+        userId: farmer.userId,
+        herbName: herb?.name,
+        verifiedBy: farmer.userId ? users[farmer.userId]?.fullName : undefined,
+        certifications: ["GACP", "Organic Thailand"],
+        thcLevel: herb?.category === "cannabis" ? herb.thcContent : undefined,
+        cbdLevel: herb?.category === "cannabis" ? herb.cbdContent : undefined,
+        temperature: activity.weather?.temperature,
+        humidity: activity.weather?.humidity,
+        notes: activity.notes
+      };
+    }
+  });
+
+  // Generate certifications
+  let certCounter = 1;
+  farmersArray.forEach(farmer => {
+    const certTypes: Array<"gapc" | "euGmp" | "dttm" | "cannabis_license"> = 
+      ["gapc", "euGmp", "dttm"];
+    
+    if (farmer.cannabisLicense) {
+      certTypes.push("cannabis_license");
     }
     
-    // Find the farmer for this herb to get consistent farmId
-    const herb = herbsArray[randomHerbIndex];
-    const farmerId = herb.farmerId || farmersArray[0].id;
-    
-    traces[traceId] = {
-      ...trace,
-      id: traceId,
-      herbId,
-      userId,
-      farmId: farmerId,
-      herbName: herbsArray[randomHerbIndex].name,
-      verifiedBy: userId ? users[userId]?.fullName : undefined
-    };
-  });
-
-  // Create certifications with references to farmers
-  const certificationTypes: Array<"gapc" | "euGmp" | "dttm"> = ["gapc", "euGmp", "dttm"];
-  const certStatuses: Array<"Passed" | "Failed" | "Pending" | "Expired"> = ["Passed", "Failed", "Pending", "Expired"];
-  
-  Object.values(farmers).forEach((farmer, fIndex) => {
-    certificationTypes.forEach((certType, tIndex) => {
-      // Not all farmers have all certification types
-      if (Math.random() > 0.3) {
-        const certId = `C${String(fIndex + 1).padStart(3, '0')}${tIndex + 1}`;
-        // Weighted random status (more passed than others)
-        const statusRandom = Math.random();
-        const status = statusRandom > 0.7 ? "Passed" : 
-                      statusRandom > 0.5 ? "Pending" : 
-                      statusRandom > 0.3 ? "Failed" : "Expired";
-        
-        // Find an appropriate officer for this certification type
-        let issuerId = undefined;
-        const officerRole = certType === "gapc" ? "acfs_officer" : 
-                           certType === "euGmp" ? "customs_officer" : "ttm_officer";
-        const eligibleOfficers = Object.values(users).filter(u => u.role === officerRole);
-        if (eligibleOfficers.length > 0) {
-          issuerId = eligibleOfficers[Math.floor(Math.random() * eligibleOfficers.length)].id;
-        }
-        
-        // Create issue and expiry dates
-        const now = new Date();
-        const issueDate = new Date(now.getTime() - Math.random() * 365 * 24 * 60 * 60 * 1000); // Up to 1 year ago
-        const expiryDate = new Date(issueDate.getTime() + (365 + Math.floor(Math.random() * 365)) * 24 * 60 * 60 * 1000); // 1-2 years after issue
+    certTypes.forEach(certType => {
+      if (Math.random() > 0.2) { // 80% chance of having each certification
+        const certId = `C${String(certCounter).padStart(6, '0')}`;
+        certCounter++;
         
         certifications[certId] = {
           id: certId,
           type: certType,
-          status,
+          status: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
           farmerId: farmer.id,
-          issuerId,
-          issueDate,
-          expiryDate,
-          documentUrl: Math.random() > 0.3 ? `https://example.com/cert/${certId}.pdf` : undefined
+          issuerId: inspectorUsers[Math.floor(Math.random() * inspectorUsers.length)].id,
+          issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+          expiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000),
+          documentUrl: `https://example.com/cert/${certId}.pdf`
         };
       }
     });
   });
 
-  // Connect transactions to herbs, buyers and sellers
-  const consumerUsers = Object.values(users).filter(
-    user => ['manufacturer', 'data_consumer'].includes(user.role)
+  // Generate transactions
+  let txCounter = 1;
+  const consumerUsers = Object.values(users).filter(u => 
+    ['manufacturer', 'data_consumer'].includes(u.role)
   );
   
-  transactionsList.forEach((transaction, index) => {
-    const transactionId = `TX${String(index + 1).padStart(6, '0')}`;
-    // Assign to a random herb
-    const randomHerbIndex = Math.floor(Math.random() * herbsArray.length);
-    const herb = herbsArray[randomHerbIndex];
-    const herbId = herb.id;
+  for (let i = 1; i <= 500; i++) {
+    const txId = `TX${String(txCounter).padStart(6, '0')}`;
+    txCounter++;
     
-    // The seller is either the farmer or a manufacturer (reselling)
-    let sellerId = undefined;
-    if (herb.farmerId && Math.random() > 0.3) {
-      // Use the farmer that owns the herb
-      if (farmers[herb.farmerId] && farmers[herb.farmerId].userId) {
-        sellerId = farmers[herb.farmerId].userId;
-      }
-    } else {
-      // Use a manufacturer as seller (reselling)
-      const manufacturerUsers = Object.values(users).filter(u => u.role === 'manufacturer');
-      if (manufacturerUsers.length > 0) {
-        sellerId = manufacturerUsers[Math.floor(Math.random() * manufacturerUsers.length)].id;
-      }
-    }
+    const randomHerb = herbsArray[Math.floor(Math.random() * herbsArray.length)];
+    const seller = randomHerb.farmerId ? farmers[randomHerb.farmerId] : undefined;
+    const buyer = consumerUsers[Math.floor(Math.random() * consumerUsers.length)];
     
-    // Buyer is a consumer (manufacturer or data_consumer)
-    let buyerId = undefined;
-    if (consumerUsers.length > 0) {
-      buyerId = consumerUsers[Math.floor(Math.random() * consumerUsers.length)].id;
-    }
-    
-    transactions[transactionId] = {
-      ...transaction,
-      id: transactionId,
-      herbId,
-      buyerId,
-      sellerId
+    transactions[txId] = {
+      id: txId,
+      herbId: randomHerb.id,
+      buyerId: buyer.id,
+      sellerId: seller?.userId,
+      productName: randomHerb.name,
+      quantity: Math.floor(Math.random() * 1000) + 10,
+      unit: "กิโลกรัม",
+      pricePerUnit: Math.floor(Math.random() * 500) + 50,
+      totalAmount: 0, // Will be calculated
+      timestamp: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
+      status: ["completed", "pending", "cancelled"][Math.floor(Math.random() * 3)] as any,
+      paymentMethod: ["bank_transfer", "cash", "crypto"][Math.floor(Math.random() * 3)] as any,
+      location: seller?.location || { lat: 13.7563, lng: 100.5018 },
+      notes: `ขาย ${randomHerb.name} คุณภาพดี`
     };
-  });
-
-  // Create inspection processes to represent the complete workflow
-  // This demonstrates how herbs go through multiple inspection stages
-  const processTypes: InspectionProcess[] = [
-    "Lab Testing", 
-    "GACP Certification", 
-    "EU-GMP Certification", 
-    "DTTM Certification", 
-    "Quality Control", 
-    "Market Approval"
-  ];
-  
-  // Create inspection processes for a subset of herbs (500 processes)
-  const herbsForInspection = Object.values(herbs).slice(0, 100); // Use first 100 herbs
-  
-  let processCounter = 0;
-  herbsForInspection.forEach(herb => {
-    // Create a complete process chain for each herb
-    let previousProcessId = undefined;
     
-    processTypes.forEach((processType, processIndex) => {
-      const processId = `P${String(processCounter + 1).padStart(6, '0')}`;
-      processCounter++;
-      
-      // Determine process status based on position in chain
-      // Earlier processes are more likely to be completed
-      const progressChance = 1 - (processIndex / processTypes.length) * 0.7;
-      const isStarted = Math.random() < progressChance + 0.2;
-      
-      if (!isStarted) {
-        // Process not yet started
-        inspectionProcesses[processId] = {
-          id: processId,
-          herbId: herb.id,
-          farmerId: herb.farmerId || Object.keys(farmers)[0],
-          processType,
-          status: "Not Started",
-          startDate: new Date(Date.now() + (processIndex * 7 * 24 * 60 * 60 * 1000)), // Future start date
-          previousProcess: previousProcessId,
-        };
-      } else {
-        // Process has started
-        const completionRandom = Math.random();
-        let status: ProcessStatus;
-        let completionDate: Date | undefined;
-        
-        if (completionRandom > 0.7) {
-          status = "Passed";
-          completionDate = new Date(Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000);
-        } else if (completionRandom > 0.5) {
-          status = "Failed";
-          completionDate = new Date(Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000);
-        } else if (completionRandom > 0.3) {
-          status = "In Progress";
-          completionDate = undefined;
-        } else {
-          status = "Pending Review";
-          completionDate = undefined;
-        }
-        
-        // Find an appropriate inspector
-        let inspectorId = undefined;
-        if (processType === "Lab Testing") {
-          const labUsers = Object.values(users).filter(u => u.role === 'lab');
-          if (labUsers.length > 0) {
-            inspectorId = labUsers[Math.floor(Math.random() * labUsers.length)].id;
-          }
-        } else if (processType === "GACP Certification") {
-          const acfsOfficers = Object.values(users).filter(u => u.role === 'acfs_officer');
-          if (acfsOfficers.length > 0) {
-            inspectorId = acfsOfficers[Math.floor(Math.random() * acfsOfficers.length)].id;
-          }
-        } else if (processType === "EU-GMP Certification") {
-          const customsOfficers = Object.values(users).filter(u => u.role === 'customs_officer');
-          if (customsOfficers.length > 0) {
-            inspectorId = customsOfficers[Math.floor(Math.random() * customsOfficers.length)].id;
-          }
-        } else {
-          const ttmOfficers = Object.values(users).filter(u => u.role === 'ttm_officer');
-          if (ttmOfficers.length > 0) {
-            inspectorId = ttmOfficers[Math.floor(Math.random() * ttmOfficers.length)].id;
-          }
-        }
-        
-        // Create results for completed processes
-        const results = (status === "Passed" || status === "Failed") ? {
-          passedCriteria: [
-            "Chemical composition within range",
-            "No contaminants detected",
-            "Proper moisture content"
-          ],
-          failedCriteria: status === "Failed" ? [
-            "Heavy metal content exceeded limits",
-            "Pesticide residue detected"
-          ] : [],
-          measurements: {
-            moisture: Math.random() * 10 + 5,
-            purity: Math.random() * 20 + 80,
-            activeCompound: Math.random() * 5 + 2
-          },
-          recommendedActions: status === "Failed" ? [
-            "Implement better soil management",
-            "Review cultivation practices",
-            "Resubmit after 3 months"
-          ] : []
-        } : undefined;
-        
-        inspectionProcesses[processId] = {
-          id: processId,
-          herbId: herb.id,
-          farmerId: herb.farmerId || Object.keys(farmers)[0],
-          processType,
-          status,
-          startDate: new Date(Date.now() - Math.floor(Math.random() * 120) * 24 * 60 * 60 * 1000),
-          completionDate,
-          inspectorId,
-          notes: status === "Failed" ? "Does not meet required standards" : 
-                status === "Passed" ? "All requirements satisfied" : 
-                "Inspection in progress",
-          previousProcess: previousProcessId,
-          results
-        };
-      }
-      
-      // Update next process for the previous process
-      if (previousProcessId && inspectionProcesses[previousProcessId]) {
-        inspectionProcesses[previousProcessId].nextProcess = processId;
-      }
-      
-      // Set current process as previous for the next iteration
-      previousProcessId = processId;
-    });
-  });
+    // Calculate total amount
+    transactions[txId].totalAmount = transactions[txId].quantity * transactions[txId].pricePerUnit;
+  }
 
   return {
     users,
     farmers,
+    fields,
     herbs,
     traces,
     transactions,
     certifications,
-    inspectionProcesses
+    inspectionProcesses,
+    farmingActivities,
+    weatherData
   };
 };
 
-// Create our database singleton
-export const mockDatabase = createRelatedData();
+// Create our enhanced database singleton
+export const mockDatabase = createEnhancedDatabase();
 
-// Helper functions to get data with relationships intact
-export const getUsersWithFarms = () => {
-  return Object.values(mockDatabase.users).map(user => {
-    // Find farms owned by this user
-    const userFarms = Object.values(mockDatabase.farmers)
-      .filter(farmer => farmer.userId === user.id);
-    
-    return {
-      ...user,
-      farms: userFarms
-    };
-  });
-};
-
-export const getFarmersWithCertifications = () => {
-  return Object.values(mockDatabase.farmers).map(farmer => {
-    // Find certifications for this farmer
-    const farmerCertifications = Object.values(mockDatabase.certifications)
-      .filter(cert => cert.farmerId === farmer.id);
-    
-    // Find owner user if exists
-    const ownerUser = farmer.userId ? mockDatabase.users[farmer.userId] : undefined;
-    
-    return {
-      ...farmer,
-      certifications: farmerCertifications,
-      owner: ownerUser
-    };
-  });
-};
-
-export const getHerbsWithTraces = () => {
-  return Object.values(mockDatabase.herbs).map(herb => {
-    // Find traces for this herb
-    const herbTraces = Object.values(mockDatabase.traces)
-      .filter(trace => trace.herbId === herb.id)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
-    // Find the farmer who grew this herb
-    const farmer = herb.farmerId ? mockDatabase.farmers[herb.farmerId] : undefined;
-    
-    return {
-      ...herb,
-      traces: herbTraces,
-      farmer
-    };
-  });
-};
-
-// Get the complete inspection process flow for a herb
-export const getHerbInspectionFlow = (herbId: string) => {
-  const processes = Object.values(mockDatabase.inspectionProcesses)
-    .filter(process => process.herbId === herbId)
-    .sort((a, b) => {
-      const processOrder: Record<InspectionProcess, number> = {
-        "Lab Testing": 1,
-        "GACP Certification": 2,
-        "EU-GMP Certification": 3,
-        "DTTM Certification": 4,
-        "Quality Control": 5,
-        "Market Approval": 6
-      };
-      return processOrder[a.processType] - processOrder[b.processType];
-    });
-  
-  return processes;
-};
-
-// Get all stakeholders involved in a herb's lifecycle
-export const getHerbStakeholders = (herbId: string) => {
-  const herb = mockDatabase.herbs[herbId];
-  if (!herb) return [];
-  
-  const stakeholders: Array<{
-    userId: string;
-    role: UserRole;
-    name: string;
-    involvement: string;
-    stage: string;
-  }> = [];
-  
-  // Farmer
-  if (herb.farmerId && mockDatabase.farmers[herb.farmerId].userId) {
-    const farmerId = herb.farmerId;
-    const userId = mockDatabase.farmers[farmerId].userId;
-    if (userId && mockDatabase.users[userId]) {
-      stakeholders.push({
-        userId,
-        role: mockDatabase.users[userId].role,
-        name: mockDatabase.users[userId].fullName,
-        involvement: "Cultivation",
-        stage: "Production"
-      });
-    }
-  }
-  
-  // Lab testers
-  const labProcesses = Object.values(mockDatabase.inspectionProcesses)
-    .filter(p => p.herbId === herbId && p.processType === "Lab Testing" && p.inspectorId);
-  
-  labProcesses.forEach(process => {
-    if (process.inspectorId && mockDatabase.users[process.inspectorId]) {
-      stakeholders.push({
-        userId: process.inspectorId,
-        role: mockDatabase.users[process.inspectorId].role,
-        name: mockDatabase.users[process.inspectorId].fullName,
-        involvement: "Lab Testing",
-        stage: "Quality Assurance"
-      });
-    }
-  });
-  
-  // Certification officers
-  const certProcesses = Object.values(mockDatabase.inspectionProcesses)
-    .filter(p => ["GACP Certification", "EU-GMP Certification", "DTTM Certification"].includes(p.processType) && p.inspectorId);
-  
-  certProcesses.forEach(process => {
-    if (process.inspectorId && mockDatabase.users[process.inspectorId]) {
-      stakeholders.push({
-        userId: process.inspectorId,
-        role: mockDatabase.users[process.inspectorId].role,
-        name: mockDatabase.users[process.inspectorId].fullName,
-        involvement: process.processType,
-        stage: "Certification"
-      });
-    }
-  });
-  
-  // Buyers (from transactions)
-  const herbTransactions = Object.values(mockDatabase.transactions)
-    .filter(tx => tx.herbId === herbId && tx.buyerId);
-  
-  herbTransactions.forEach(transaction => {
-    if (transaction.buyerId && mockDatabase.users[transaction.buyerId]) {
-      stakeholders.push({
-        userId: transaction.buyerId,
-        role: mockDatabase.users[transaction.buyerId].role,
-        name: mockDatabase.users[transaction.buyerId].fullName,
-        involvement: "Purchase",
-        stage: "Distribution"
-      });
-    }
-  });
-  
-  return stakeholders;
-};
-
-// Get total stakeholders by role
-export const getStakeholdersByRole = () => {
-  const stakeholderRoles: Record<UserRole, number> = {
-    farmer: 0,
-    lab: 0,
-    manufacturer: 0,
-    ttm_officer: 0,
-    acfs_officer: 0,
-    customs_officer: 0,
-    admin: 0,
-    data_consumer: 0,
-    guest: 0
-  };
-  
-  // Count active stakeholders (those involved in at least one process)
-  const activeUserIds = new Set<string>();
-  
-  // From farmers
-  Object.values(mockDatabase.farmers)
-    .filter(farmer => farmer.userId)
-    .forEach(farmer => {
-      if (farmer.userId) activeUserIds.add(farmer.userId);
-    });
-  
-  // From inspection processes
-  Object.values(mockDatabase.inspectionProcesses)
-    .filter(process => process.inspectorId)
-    .forEach(process => {
-      if (process.inspectorId) activeUserIds.add(process.inspectorId);
-    });
-  
-  // From transactions
-  Object.values(mockDatabase.transactions)
-    .forEach(tx => {
-      if (tx.buyerId) activeUserIds.add(tx.buyerId);
-      if (tx.sellerId) activeUserIds.add(tx.sellerId);
-    });
-  
-  // Count by role
-  Array.from(activeUserIds).forEach(userId => {
-    const user = mockDatabase.users[userId];
-    if (user) {
-      stakeholderRoles[user.role]++;
-    }
-  });
-  
-  return Object.entries(stakeholderRoles)
-    .map(([role, count]) => ({ role, count }))
-    .filter(item => item.count > 0);
-};
-
-// Get stakeholder involvement statistics
-export const getStakeholderInvolvementStats = () => {
-  const involvementStats: Record<string, number> = {
-    "Production": 0,
-    "Testing": 0,
-    "Certification": 0,
-    "Distribution": 0,
-    "Consumption": 0,
-    "Regulation": 0
-  };
-  
-  // Count farmers in production
-  Object.values(mockDatabase.farmers)
-    .filter(farmer => farmer.userId)
-    .forEach(() => {
-      involvementStats["Production"]++;
-    });
-  
-  // Count lab testers
-  Object.values(mockDatabase.inspectionProcesses)
-    .filter(p => p.processType === "Lab Testing" && p.inspectorId)
-    .forEach(() => {
-      involvementStats["Testing"]++;
-    });
-  
-  // Count certification officers
-  Object.values(mockDatabase.inspectionProcesses)
-    .filter(p => ["GACP Certification", "EU-GMP Certification", "DTTM Certification"].includes(p.processType) && p.inspectorId)
-    .forEach(() => {
-      involvementStats["Certification"]++;
-    });
-  
-  // Count regulatory officers
-  Object.values(mockDatabase.users)
-    .filter(user => ["ttm_officer", "acfs_officer", "customs_officer"].includes(user.role))
-    .forEach(() => {
-      involvementStats["Regulation"]++;
-    });
-  
-  // Count distributors and consumers
-  Object.values(mockDatabase.transactions).forEach(tx => {
-    if (tx.sellerId) involvementStats["Distribution"]++;
-    if (tx.buyerId) involvementStats["Consumption"]++;
-  });
-  
-  return Object.entries(involvementStats)
-    .map(([category, count]) => ({ category, count }));
-};
-
-// Backward compatibility wrappers to ensure existing code works
-export const generateFarmers = (count: number) => {
-  return Object.values(mockDatabase.farmers).slice(0, count);
-};
-
-export const generateTraces = (count: number) => {
-  return Object.values(mockDatabase.traces).slice(0, count);
-};
-
-export const generateTransactions = (count: number) => {
-  return Object.values(mockDatabase.transactions).slice(0, count);
-};
-
-// Export the user data functions to maintain compatibility
-export {
-  getUsersByMonth,
-  getUsersByRole,
-  getUsersByProvince,
-  getUserActivityStats
-};
-
-// Calculate certification status counts based on the certification records
-export const getCertificationStatusCounts = (type: "gapc" | "euGmp" | "dttm") => {
-  const certifications = Object.values(mockDatabase.certifications)
-    .filter(cert => cert.type === type);
-  
-  const counts: Record<string, number> = {
-    "Passed": 0,
-    "Failed": 0,
-    "Pending": 0,
-    "Expired": 0
-  };
-  
-  certifications.forEach(cert => {
-    counts[cert.status]++;
-  });
-  
-  return counts;
-};
-
-// Get certifications by user, useful for dashboard filtering
-export const getCertificationsByUser = (userId: string) => {
-  // Find all farms owned by this user
-  const userFarms = Object.values(mockDatabase.farmers)
-    .filter(farmer => farmer.userId === userId)
-    .map(farmer => farmer.id);
-  
-  // Find all certifications for these farms
-  return Object.values(mockDatabase.certifications)
-    .filter(cert => userFarms.includes(cert.farmerId));
-};
-
-// Get transactions involving a specific user
-export const getTransactionsByUser = (userId: string) => {
-  return Object.values(mockDatabase.transactions)
-    .filter(tx => tx.buyerId === userId || tx.sellerId === userId);
-};
-
-// Get all traces created or verified by a specific user
-export const getTracesByUser = (userId: string) => {
-  return Object.values(mockDatabase.traces)
-    .filter(trace => trace.userId === userId);
-};
-
-// Get all inspection processes for herbs from a specific farmer
-export const getInspectionProcessesByFarmer = (farmerId: string) => {
-  return Object.values(mockDatabase.inspectionProcesses)
-    .filter(process => process.farmerId === farmerId);
-};
-
-// Get process flow statistics
-export const getProcessFlowStats = () => {
-  const totalProcesses = Object.values(mockDatabase.inspectionProcesses).length;
-  
-  const statusCounts: Record<ProcessStatus, number> = {
-    "Not Started": 0,
-    "In Progress": 0,
-    "Passed": 0,
-    "Failed": 0,
-    "Pending Review": 0,
-    "Certified": 0,
-    "Expired": 0
-  };
-  
-  Object.values(mockDatabase.inspectionProcesses).forEach(process => {
-    statusCounts[process.status]++;
-  });
-  
-  const processCounts: Record<InspectionProcess, number> = {
-    "Lab Testing": 0,
-    "GACP Certification": 0,
-    "EU-GMP Certification": 0,
-    "DTTM Certification": 0,
-    "Quality Control": 0,
-    "Market Approval": 0
-  };
-  
-  Object.values(mockDatabase.inspectionProcesses).forEach(process => {
-    processCounts[process.processType]++;
-  });
-  
-  return {
-    totalProcesses,
-    statusCounts,
-    processCounts,
-    averageCompletionRate: statusCounts["Passed"] / totalProcesses,
-    averageFailureRate: statusCounts["Failed"] / totalProcesses
-  };
-};
-
-// Enhanced dashboard data
+// Export functions for backward compatibility and new functionality
 export const getDashboardData = () => {
-  // Get certification counts from the actual certification records
-  const gapcStatus = getCertificationStatusCounts("gapc");
-  const euGmpStatus = getCertificationStatusCounts("euGmp");
-  const dttmStatus = getCertificationStatusCounts("dttm");
+  const farmers = Object.values(mockDatabase.farmers);
+  const traces = Object.values(mockDatabase.traces).slice(0, 50);
   
-  // Get user statistics
-  const userStats = getUserActivityStats();
+  // Calculate certification status counts
+  const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
+  const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
+  const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
   
-  // Get process flow statistics
-  const processStats = getProcessFlowStats();
-  
-  // Get stakeholder statistics
-  const stakeholdersByRole = getStakeholdersByRole();
-  const stakeholderInvolvement = getStakeholderInvolvementStats();
-  
-  // Get recent traces with related entities
-  const recentTraces = Object.values(mockDatabase.traces)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10)
-    .map(trace => {
-      const herb = trace.herbId ? mockDatabase.herbs[trace.herbId] : undefined;
-      const user = trace.userId ? mockDatabase.users[trace.userId] : undefined;
-      
-      return {
-        ...trace,
-        herbName: herb?.name || 'Unknown',
-        verifiedBy: user?.fullName || undefined
-      };
-    });
-  
-  // Get transaction data with related entities
-  const transactions = Object.values(mockDatabase.transactions)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10)
-    .map(tx => {
-      const buyer = tx.buyerId ? mockDatabase.users[tx.buyerId] : undefined;
-      const seller = tx.sellerId ? mockDatabase.users[tx.sellerId] : undefined;
-      const herb = tx.herbId ? mockDatabase.herbs[tx.herbId] : undefined;
-      
-      return {
-        ...tx,
-        buyerName: buyer?.fullName || 'Anonymous',
-        sellerName: seller?.fullName || 'Anonymous',
-        herbName: herb?.name || 'Unknown'
-      };
-    });
-  
-  // Get transaction totals
-  const { totalSales, pendingOrders } = getTransactionTotals(
-    Object.values(mockDatabase.transactions)
-  );
-  
-  // Get recent inspections with inspector details
-  const recentInspections = Object.values(mockDatabase.inspectionProcesses)
-    .sort((a, b) => {
-      if (!a.completionDate && !b.completionDate) return 0;
-      if (!a.completionDate) return -1;
-      if (!b.completionDate) return 1;
-      return b.completionDate.getTime() - a.completionDate.getTime();
-    })
-    .slice(0, 10)
-    .map(inspection => {
-      const herb = inspection.herbId ? mockDatabase.herbs[inspection.herbId] : undefined;
-      const inspector = inspection.inspectorId ? mockDatabase.users[inspection.inspectorId] : undefined;
-      
-      return {
-        ...inspection,
-        herbName: herb?.name || 'Unknown',
-        inspectorName: inspector?.fullName || 'System'
-      };
-    });
-  
+  farmers.forEach(farmer => {
+    gapcStatus[farmer.gacp?.status || "Pending"]++;
+    euGmpStatus[farmer.euGmp]++;
+    dttmStatus[farmer.dttm]++;
+  });
+
   return {
-    farmers: Object.values(mockDatabase.farmers),
-    traces: recentTraces,
+    farmers,
+    traces,
     gapcStatus,
     euGmpStatus,
     dttmStatus,
-    userStats,
-    transactions,
-    totalSales,
-    pendingOrders,
-    processStats,
-    stakeholdersByRole,
-    stakeholderInvolvement,
-    recentInspections
+    userStats: getUserActivityStats(),
+    transactions: Object.values(mockDatabase.transactions).slice(0, 10),
+    totalSales: Object.values(mockDatabase.transactions)
+      .filter(tx => tx.status === 'completed')
+      .reduce((sum, tx) => sum + tx.totalAmount, 0),
+    pendingOrders: Object.values(mockDatabase.transactions)
+      .filter(tx => tx.status === 'pending').length,
+    processStats: {
+      totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
+      statusCounts: {} as any,
+      processCounts: {} as any,
+      averageCompletionRate: 0.75,
+      averageFailureRate: 0.15
+    },
+    stakeholdersByRole: [],
+    stakeholderInvolvement: [],
+    recentInspections: Object.values(mockDatabase.inspectionProcesses).slice(0, 10)
   };
+};
+
+// Export enhanced types and functions
+export type { EnhancedTrace, EnhancedFarm, HerbData, FarmingActivity, WeatherData, Field };
+
+// Backward compatibility exports
+export { getUsersByMonth, getUsersByRole, getUsersByProvince, getUserActivityStats };
+
+export const generateFarmers = (count: number) => Object.values(mockDatabase.farmers).slice(0, count);
+export const generateTraces = (count: number) => Object.values(mockDatabase.traces).slice(0, count);
+export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
+
+// New cannabis-specific functions
+export const getCannabisStatistics = () => {
+  const allHerbs = Object.values(mockDatabase.herbs);
+  const cannabisHerbs = allHerbs.filter(h => h.category === "cannabis");
+  const traditionalHerbs = allHerbs.filter(h => h.category === "traditional");
+  
+  return {
+    totalHerbs: allHerbs.length,
+    cannabisCount: cannabisHerbs.length,
+    traditionalCount: traditionalHerbs.length,
+    cannabisPercentage: (cannabisHerbs.length / allHerbs.length) * 100,
+    averageThc: cannabisHerbs.reduce((sum, h) => sum + (h.thcContent || 0), 0) / cannabisHerbs.length,
+    averageCbd: cannabisHerbs.reduce((sum, h) => sum + (h.cbdContent || 0), 0) / cannabisHerbs.length
+  };
+};
+
+export const getFarmingActivitiesByFarm = (farmId: string) => {
+  return Object.values(mockDatabase.farmingActivities)
+    .filter(activity => activity.farmId === farmId)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+};
+
+export const getWeatherDataByFarm = (farmId: string, days: number = 30) => {
+  const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  return Object.values(mockDatabase.weatherData)
+    .filter(weather => weather.farmId === farmId && weather.date >= cutoffDate)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+};
+
+export const getFieldsByFarm = (farmId: string) => {
+  const farmer = mockDatabase.farmers[farmId];
+  if (!farmer) return [];
+  
+  return farmer.fields.map(fieldId => mockDatabase.fields[fieldId]).filter(Boolean);
 };
