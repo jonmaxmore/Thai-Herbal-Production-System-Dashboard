@@ -1,6 +1,14 @@
 
 import { Badge } from "@/components/ui/badge";
-import { statusColors, CertificationStatus } from "@/utils/herbData";
+
+export type CertificationStatus = "Passed" | "Failed" | "Pending" | "Expired";
+
+const statusColors: Record<CertificationStatus, string> = {
+  "Passed": "bg-green-600 text-white",
+  "Failed": "bg-red-600 text-white", 
+  "Pending": "bg-yellow-600 text-white",
+  "Expired": "bg-gray-600 text-white"
+};
 
 interface StatusBadgeProps {
   status: CertificationStatus;
@@ -12,6 +20,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       case "Passed": return "✅ ";
       case "Failed": return "❌ ";
       case "Pending": return "⏳ ";
+      case "Expired": return "⏰ ";
       default: return "ℹ️ ";
     }
   };
@@ -22,3 +31,5 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     </Badge>
   );
 }
+
+export { statusColors };

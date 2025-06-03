@@ -107,8 +107,15 @@ export default function HerbDashboard() {
             />
           )}
 
-          {/* Certification View with Search and Filter */}
-          {activeTab === "certification" && <CertificationsList farmers={farmers} />}
+          {/* Certification View with Search and Filter - Convert EnhancedFarm to Farm format */}
+          {activeTab === "certification" && (
+            <CertificationsList 
+              farmers={farmers.map(farm => ({
+                ...farm,
+                id: parseInt(farm.id.replace('F', ''), 10) || 0
+              }))} 
+            />
+          )}
 
           {/* Map View */}
           {activeTab === "map" && <MapView />}
