@@ -4,7 +4,7 @@ import { Users, ClipboardCheck, Leaf, AlertTriangle } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
-import { getDashboardData } from "@/utils/mockDatabase";
+import { getDashboardData } from "@/utils/database";
 
 export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);

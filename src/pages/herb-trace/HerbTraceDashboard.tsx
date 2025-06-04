@@ -9,7 +9,7 @@ import { TransactionTable } from "@/components/herb-trace/TransactionTable";
 import { StakeholderAnalysis } from "@/components/herb-trace/StakeholderAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserAnalytics from "@/components/herb-trace/UserAnalytics";
-import { getDashboardData } from "@/utils/mockDatabase";
+import { getDashboardData } from "@/utils/database";
 import { ProcessFlowSection } from "@/components/herb-trace/ProcessFlowSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,37 +102,37 @@ export default function HerbTraceDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <StatCard 
             title="ผู้ใช้งานทั้งหมด" 
-            value={userStats.totalUsers.toLocaleString()} 
+            value={userStats?.totalUsers?.toLocaleString() || "0"} 
             icon={<Users className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300" 
           />
           <StatCard 
             title="ผู้ใช้งานที่ยืนยันแล้ว" 
-            value={userStats.verifiedUsers.toLocaleString()} 
+            value={userStats?.verifiedUsers?.toLocaleString() || "0"} 
             icon={<UserCheck className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300" 
           />
           <StatCard 
             title="กระบวนการทั้งหมด" 
-            value={processStats.totalProcesses.toLocaleString()} 
+            value={processStats?.totalProcesses?.toLocaleString() || "0"} 
             icon={<Activity className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
           <StatCard 
             title="ผ่านการทดสอบ" 
-            value={processStats.statusCounts["Passed"].toLocaleString()} 
+            value={processStats?.statusCounts?.["Passed"]?.toLocaleString() || "0"} 
             icon={<CheckCircle className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
           <StatCard 
             title="ยอดขายทั้งหมด" 
-            value={`฿${totalSales.toLocaleString()}`} 
+            value={`฿${totalSales?.toLocaleString() || "0"}`} 
             icon={<CreditCard className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />
           <StatCard 
             title="คำสั่งซื้อที่รอดำเนินการ" 
-            value={pendingOrders.toString()} 
+            value={pendingOrders?.toString() || "0"} 
             icon={<ShoppingCart className="h-5 w-5 text-green-600" />}
             className="bg-white hover:shadow-lg transition-all duration-300"
           />

@@ -6,10 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import StatusBadge from "@/components/StatusBadge";
-import { CertificationStatus, Farm } from "@/utils/herbData";
+import { CertificationStatus } from "@/utils/herbData";
+import { EnhancedFarm } from "@/utils/database";
 
 interface CertificationsListProps {
-  farmers: Farm[];
+  farmers: EnhancedFarm[];
 }
 
 export default function CertificationsList({ farmers }: CertificationsListProps) {
@@ -24,7 +25,7 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
       : true;
     
     const matchesStatus = statusFilter !== "All" 
-      ? farmer.gapc === statusFilter || 
+      ? farmer.gacp?.status === statusFilter || 
         farmer.euGmp === statusFilter || 
         farmer.dttm === statusFilter || 
         farmer.tis === statusFilter
@@ -89,7 +90,7 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
                     <TableCell>{farmer.id}</TableCell>
                     <TableCell>{farmer.name}</TableCell>
                     <TableCell>{farmer.herb}</TableCell>
-                    <TableCell><StatusBadge status={farmer.gapc} /></TableCell>
+                    <TableCell><StatusBadge status={farmer.gacp?.status || "Pending"} /></TableCell>
                     <TableCell><StatusBadge status={farmer.euGmp} /></TableCell>
                     <TableCell><StatusBadge status={farmer.dttm} /></TableCell>
                     <TableCell><StatusBadge status={farmer.tis} /></TableCell>
