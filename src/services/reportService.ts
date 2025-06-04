@@ -4,6 +4,7 @@ import { AnalyticsService } from './analyticsService';
 import { MasterDataService } from './masterDataService';
 import { ProductionService } from './productionService';
 import { UserService } from './userService';
+import { mockDatabase } from '@/utils/database';
 
 export class ReportService {
   // Production reports
@@ -69,9 +70,9 @@ export class ReportService {
     
     const complianceStats = {
       totalInspections: inspections.length,
-      passed: inspections.filter(i => i.status === 'Passed').length,
-      failed: inspections.filter(i => i.status === 'Failed').length,
-      pending: inspections.filter(i => i.status === 'Pending Review').length
+      passed: inspections.filter((i: any) => i.status === 'Passed').length,
+      failed: inspections.filter((i: any) => i.status === 'Failed').length,
+      pending: inspections.filter((i: any) => i.status === 'Pending Review').length
     };
 
     return {

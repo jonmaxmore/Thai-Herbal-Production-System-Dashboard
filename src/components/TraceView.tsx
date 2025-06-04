@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -9,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QRCode from "react-qr-code";
-import { mockDatabase, EnhancedTrace, EnhancedFarm } from "@/utils/mockDatabase";
+import { mockDatabase } from '@/utils/database';
+import { EnhancedTrace, EnhancedFarm } from '@/utils/database/types';
 import StatusBadge from "./StatusBadge";
 import { Separator } from "@/components/ui/separator";
 
@@ -33,12 +33,12 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
       
       // Get all traces for this herb to show journey
       const journeyTraces = Object.values(mockDatabase.traces)
-        .filter(trace => trace.herbId === selectedTrace.herbId)
-        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        .filter((trace: any) => trace.herbId === selectedTrace.herbId)
+        .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       
       setSelectedFarm(farm || null);
       setSelectedFarmer(farmer);
-      setHerbJourney(journeyTraces);
+      setHerbJourney(journeyTraces as EnhancedTrace[]);
     } else {
       setSelectedFarm(null);
       setSelectedFarmer(null);
@@ -359,7 +359,7 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                       </div>
                                     )}
                                     
-                                    {selectedTrace.certifications.length > 0 && (
+                                    {selectedTrace.certifications && selectedTrace.certifications.length > 0 && (
                                       <div>
                                         <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center">
                                           <Award className="mr-2 h-5 w-5 text-green-600" /> การรับรองผลิตภัณฑ์ / Product Certifications
