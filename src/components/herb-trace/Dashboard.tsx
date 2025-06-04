@@ -13,14 +13,14 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load dashboard data using service layer
+    // Load dashboard data using simplified service layer
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Get data from services
+        // Get core data from services
         const farms = MasterDataService.getAllFarms();
-        const traces = ProductionService.getAllTraces().slice(0, 50);
+        const traces = ProductionService.getAllTraces().slice(0, 20);
         const certificationStats = AnalyticsService.getCertificationStatistics();
         const productionStats = AnalyticsService.getProductionStatistics();
         
@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold hidden md:block text-green-800">Herb Trace Dashboard</h2>
+      <h2 className="text-2xl font-bold hidden md:block text-green-800">Thai Herbal Production Platform - Lite</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
@@ -82,7 +82,7 @@ export default function Dashboard() {
           className="bg-white hover:shadow-lg transition-all duration-300"
         />
         <StatCard 
-          title="DTTAM Failed" 
+          title="DTTM Failed" 
           value={dttmStatus["Failed"] || 0} 
           icon={<AlertTriangle className="h-5 w-5 text-green-600" />}
           className="bg-white hover:shadow-lg transition-all duration-300"

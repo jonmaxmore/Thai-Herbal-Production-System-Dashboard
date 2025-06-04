@@ -1,59 +1,18 @@
 
-// Analytics Services Layer - Data analysis and insights
+// Simplified Analytics Services - Core metrics only
 import { mockDatabase } from '@/utils/database';
-import { MasterDataService } from './masterDataService';
-import { ProductionService } from './productionService';
 
 export class AnalyticsService {
-  // Production analytics
-  static getProductionStatistics() {
-    const farms = MasterDataService.getAllFarms();
-    const traces = ProductionService.getAllTraces();
-    const activities = ProductionService.getFarmingActivities();
-
-    return {
-      totalFarms: farms.length,
-      totalProduction: traces.length,
-      totalActivities: activities.length,
-      averageProductionPerFarm: traces.length / farms.length,
-      productionByProvince: this.getProductionByProvince(farms, traces),
-      qualityDistribution: this.getQualityDistribution(traces)
-    };
-  }
-
-  private static getProductionByProvince(farms: any[], traces: any[]) {
-    const provinceStats = new Map();
-    
-    farms.forEach(farm => {
-      const farmTraces = traces.filter(trace => trace.farmId === farm.id);
-      provinceStats.set(farm.province, (provinceStats.get(farm.province) || 0) + farmTraces.length);
-    });
-    
-    return Array.from(provinceStats.entries()).map(([province, count]) => ({
-      province,
-      count
-    }));
-  }
-
-  private static getQualityDistribution(traces: any[]) {
-    const qualityStats = traces.reduce((acc, trace) => {
-      acc[trace.qualityGrade] = (acc[trace.qualityGrade] || 0) + 1;
-      return acc;
-    }, {});
-    
-    return qualityStats;
-  }
-
-  // Certification analytics
+  // Core certification statistics
   static getCertificationStatistics() {
-    const farms = MasterDataService.getAllFarms();
+    const farms = Object.values(mockDatabase.farmers);
     
-    const gapcStats = { Passed: 0, Failed: 0, Pending: 0, Expired: 0 };
-    const euGmpStats = { Passed: 0, Failed: 0, Pending: 0, Expired: 0 };
-    const dttmStats = { Passed: 0, Failed: 0, Pending: 0, Expired: 0 };
+    const gapcStats = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
+    const euGmpStats = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
+    const dttmStats = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
     
     farms.forEach(farm => {
-      gapcStats[farm.gacp?.status || 'Pending']++;
+      gapcStats[farm.gacp]++;
       euGmpStats[farm.euGmp]++;
       dttmStats[farm.dttm]++;
     });
@@ -61,34 +20,61 @@ export class AnalyticsService {
     return { gapcStats, euGmpStats, dttmStats };
   }
 
-  // Trend analysis
-  static getProductionTrends(period: 'daily' | 'weekly' | 'monthly' = 'monthly') {
-    const traces = ProductionService.getAllTraces();
-    const trendData = new Map();
+  // Core production statistics
+  static getProductionStatistics() {
+    const traces = Object.values(mockDatabase.traces);
+    const herbs = Object.values(mockDatabase.herbs);
+    
+    const qualityDistribution = { "A": 0, "B": 0, "C": 0, "Premium": 0 };
+    const categoryDistribution = { "cannabis": 0, "traditional": 0 };
     
     traces.forEach(trace => {
-      const date = new Date(trace.timestamp);
-      let key: string;
-      
-      switch (period) {
-        case 'daily':
-          key = date.toISOString().split('T')[0];
-          break;
-        case 'weekly':
-          const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
-          key = weekStart.toISOString().split('T')[0];
-          break;
-        case 'monthly':
-          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-          break;
-      }
-      
-      trendData.set(key, (trendData.get(key) || 0) + 1);
+      qualityDistribution[trace.qualityGrade]++;
     });
     
-    return Array.from(trendData.entries()).map(([period, count]) => ({
-      period,
-      count
-    })).sort((a, b) => a.period.localeCompare(b.period));
+    herbs.forEach(herb => {
+      categoryDistribution[herb.category]++;
+    });
+
+    return {
+      totalTraces: traces.length,
+      totalHerbs: herbs.length,
+      qualityDistribution,
+      categoryDistribution,
+      averageQuality: this.calculateAverageQuality(traces)
+    };
+  }
+
+  // Core production trends
+  static getProductionTrends() {
+    const traces = Object.values(mockDatabase.traces);
+    const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    const recentTraces = traces.filter(trace => 
+      new Date(trace.timestamp) >= last30Days
+    );
+
+    const trendData = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dayTraces = recentTraces.filter(trace => {
+        const traceDate = new Date(trace.timestamp);
+        return traceDate.toDateString() === date.toDateString();
+      });
+      
+      trendData.push({
+        date: date.toISOString().split('T')[0],
+        traces: dayTraces.length,
+        quantity: dayTraces.reduce((sum, trace) => sum + trace.quantity, 0)
+      });
+    }
+
+    return trendData;
+  }
+
+  private static calculateAverageQuality(traces: any[]) {
+    const qualityMap = { Premium: 4, A: 3, B: 2, C: 1 };
+    const total = traces.reduce((sum, trace) => sum + (qualityMap[trace.qualityGrade] || 0), 0);
+    return total / traces.length;
   }
 }

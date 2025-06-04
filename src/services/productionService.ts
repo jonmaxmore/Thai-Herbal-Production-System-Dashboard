@@ -1,10 +1,10 @@
 
-// Production Services Layer - Handles production tracking and management
-import { FarmerId, TraceId, ActivityId } from '@/utils/database/types';
+// Simplified Production Services - Core traceability only
+import { FarmerId, TraceId } from '@/utils/database/types';
 import { mockDatabase } from '@/utils/database';
 
 export class ProductionService {
-  // Production tracking services
+  // Core trace services
   static getAllTraces() {
     return Object.values(mockDatabase.traces);
   }
@@ -21,25 +21,7 @@ export class ProductionService {
     return this.getAllTraces().filter(trace => trace.herbId === herbId);
   }
 
-  // Farming activity services
-  static getFarmingActivities() {
-    return Object.values(mockDatabase.farmingActivities);
-  }
-
-  static getActivitiesByFarm(farmId: FarmerId) {
-    return this.getFarmingActivities().filter(activity => activity.farmId === farmId);
-  }
-
-  static getActivitiesByType(activityType: string) {
-    return this.getFarmingActivities().filter(activity => activity.activityType === activityType);
-  }
-
-  // Quality control services
-  static getQualityTests() {
-    return Object.values(mockDatabase.inspectionProcesses)
-      .filter(process => process.processType === 'Quality Control');
-  }
-
+  // Core production batch services
   static getProductionBatches() {
     const traces = this.getAllTraces();
     const batches = new Map();
@@ -49,11 +31,17 @@ export class ProductionService {
         batches.set(trace.batchNumber, {
           batchNumber: trace.batchNumber,
           herbId: trace.herbId,
+          herb: trace.herb,
           farmId: trace.farmId,
-          traces: []
+          totalQuantity: 0,
+          qualityGrade: trace.qualityGrade,
+          events: []
         });
       }
-      batches.get(trace.batchNumber).traces.push(trace);
+      
+      const batch = batches.get(trace.batchNumber);
+      batch.totalQuantity += trace.quantity;
+      batch.events.push(trace);
     });
     
     return Array.from(batches.values());

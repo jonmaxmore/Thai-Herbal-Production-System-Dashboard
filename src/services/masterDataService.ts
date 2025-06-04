@@ -1,10 +1,10 @@
 
-// Master Data Services Layer - Handles all master data operations
+// Simplified Master Data Services - Core functionality only
 import { HerbId, FarmerId } from '@/utils/database/types';
 import { mockDatabase } from '@/utils/database';
 
 export class MasterDataService {
-  // Herb master data services
+  // Core herb services
   static getAllHerbs() {
     return Object.values(mockDatabase.herbs);
   }
@@ -21,7 +21,7 @@ export class MasterDataService {
     return this.getAllHerbs().filter(herb => herb.category === 'traditional');
   }
 
-  // Farm master data services
+  // Core farm services
   static getAllFarms() {
     return Object.values(mockDatabase.farmers);
   }
@@ -34,20 +34,12 @@ export class MasterDataService {
     return this.getAllFarms().filter(farm => farm.province === province);
   }
 
-  // Field master data services
-  static getFieldsByFarm(farmId: FarmerId) {
-    const farm = this.getFarmById(farmId);
-    if (!farm) return [];
-    
-    return farm.fields.map(fieldId => mockDatabase.fields[fieldId]).filter(Boolean);
-  }
-
-  // Certification master data
+  // Core certification data
   static getCertificationTypes() {
-    return ['gapc', 'euGmp', 'dttm', 'cannabis_license'];
+    return ['gacp', 'euGmp', 'dttm'];
   }
 
   static getInspectionProcessTypes() {
-    return ['Lab Testing', 'GACP Certification', 'EU-GMP Certification', 'DTTM Certification', 'Quality Control', 'Market Approval'];
+    return ['GACP Certification', 'EU-GMP Certification', 'DTTM Certification', 'Quality Control'];
   }
 }

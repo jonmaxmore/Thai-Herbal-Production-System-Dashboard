@@ -1,6 +1,4 @@
 
-// Mock Database - Centralized data source
-import { mockDatabase as database } from '@/utils/database';
-
-export const mockDatabase = database;
+// Simplified Mock Database - Direct export from enhanced database
+export { mockDatabase } from '@/utils/database';
 export * from '@/utils/database/types';
