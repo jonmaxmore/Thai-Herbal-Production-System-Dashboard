@@ -13,7 +13,8 @@ import {
 import {
   MarketplaceTransaction,
   generateTransactions as originalGenerateTransactions,
-  getTransactionTotals
+  getTransactionTotals,
+  TransactionStatus
 } from "./marketplaceData";
 
 // Unique identifier types for cross-referencing
@@ -82,7 +83,7 @@ export interface EnhancedFarm extends Omit<Farm, 'id'> {
     expiryDate: Date;
     type: "medical" | "industrial" | "research";
   };
-  gacp?: {
+  gapc?: {
     status: "Passed" | "Failed" | "Pending" | "Expired";
     issueDate?: Date;
     expiryDate?: Date;
@@ -186,6 +187,8 @@ export interface EnhancedTransaction extends MarketplaceTransaction {
   buyerId?: UserId;
   sellerId?: UserId;
   herbId?: HerbId;
+  totalAmount: number;
+  status: TransactionStatus;
 }
 
 // Enhanced database interface
@@ -310,6 +313,11 @@ const createEnhancedDatabase = (): MockDatabase => {
       name: `ฟาร์มกัญชา ${i}`,
       herb: hasCannabisLicense ? cannabisVarieties[Math.floor(Math.random() * cannabisVarieties.length)] : traditionalHerbs[Math.floor(Math.random() * traditionalHerbs.length)],
       gacp: {
+        status: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
+        issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+        expiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000)
+      },
+      gapc: {
         status: ["Passed", "Failed", "Pending", "Expired"][Math.floor(Math.random() * 4)] as any,
         issueDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
         expiryDate: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000)
@@ -583,11 +591,13 @@ const createEnhancedDatabase = (): MockDatabase => {
       unit: "กิโลกรัม",
       pricePerUnit,
       totalAmount,
-      timestamp: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "completed" as any,
+      timestamp: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000),
+      status: ["Completed", "Pending", "Failed", "Processing", "Refunded"][Math.floor(Math.random() * 5)] as TransactionStatus,
       paymentMethod: ["bank_transfer", "cash", "crypto"][Math.floor(Math.random() * 3)] as any,
       location: seller?.location || { lat: 13.7563, lng: 100.5018 },
-      notes: `ขาย ${randomHerb.name} คุณภาพดี`
+      notes: `ขาย ${randomHerb.name} คุณภาพดี`,
+      userId: seller?.userId || buyer.id,
+      amount: totalAmount
     };
   }
 
@@ -624,6 +634,15 @@ export const getDashboardData = () => {
     dttmStatus[farmer.dttm]++;
   });
 
+  // Calculate process stats
+  const allProcesses = Object.values(mockDatabase.inspectionProcesses);
+  const statusCounts = {
+    "Passed": allProcesses.filter(p => p.status === "Passed").length,
+    "Failed": allProcesses.filter(p => p.status === "Failed").length,
+    "In Progress": allProcesses.filter(p => p.status === "In Progress").length,
+    "Pending Review": allProcesses.filter(p => p.status === "Pending Review").length
+  };
+
   // Prepare recentInspections with all required properties
   const recentInspections = Object.values(mockDatabase.inspectionProcesses)
     .slice(0, 10)
@@ -654,13 +673,13 @@ export const getDashboardData = () => {
     userStats: getUserActivityStats(),
     transactions: Object.values(mockDatabase.transactions).slice(0, 10),
     totalSales: Object.values(mockDatabase.transactions)
-      .filter(tx => tx.status === 'completed')
+      .filter(tx => tx.status === 'Completed')
       .reduce((sum, tx) => sum + tx.totalAmount, 0),
     pendingOrders: Object.values(mockDatabase.transactions)
-      .filter(tx => tx.status === 'pending').length,
+      .filter(tx => tx.status === 'Pending').length,
     processStats: {
       totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
-      statusCounts: {} as any,
+      statusCounts,
       processCounts: {} as any,
       averageCompletionRate: 0.75,
       averageFailureRate: 0.15
