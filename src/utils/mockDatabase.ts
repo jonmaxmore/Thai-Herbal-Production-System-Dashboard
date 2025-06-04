@@ -355,10 +355,10 @@ const createEnhancedDatabase = (): MockDatabase => {
       farmerId: randomFarmer.id,
       category: isCannabis ? "cannabis" : "traditional",
       thcContent: isCannabis ? Math.random() * 25 : undefined, // 0-25% THC
-      cbdContent: iscannabis ? Math.random() * 20 : undefined, // 0-20% CBD
-      properties: isCanvas ? ["Pain Relief", "Anti-inflammatory", "Anxiety Relief"] : ["Traditional Medicine", "Herbal Tea"],
-      activeCompounds: isCanvas ? ["THC", "CBD", "Terpenes"] : ["Natural Compounds"],
-      traditionalUses: isCanvas ? ["Medical Cannabis", "Industrial Hemp"] : ["Traditional Thai Medicine"]
+      cbdContent: isCannabis ? Math.random() * 20 : undefined, // 0-20% CBD
+      properties: isCannabis ? ["Pain Relief", "Anti-inflammatory", "Anxiety Relief"] : ["Traditional Medicine", "Herbal Tea"],
+      activeCompounds: isCannabis ? ["THC", "CBD", "Terpenes"] : ["Natural Compounds"],
+      traditionalUses: isCannabis ? ["Medical Cannabis", "Industrial Hemp"] : ["Traditional Thai Medicine"]
     };
   });
 
