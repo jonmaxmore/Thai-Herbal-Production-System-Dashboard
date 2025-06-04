@@ -1,19 +1,26 @@
 
 import { 
   UserId, FarmerId, HerbId, TraceId, TransactionId, CertificationId, 
-  ActivityId, WeatherId, FieldId, ProcessStatus, InspectionProcess,
-  EnhancedFarm, Field, HerbData, EnhancedTrace, EnhancedTransaction, FarmingActivity, WeatherData
+  ActivityId, WeatherId, FieldId, ProcessStatus, InspectionProcess
 } from './types';
 import { generateMockUsers } from "../mockUserData";
+
+// Re-export types for easy access
+export type {
+  UserId, FarmerId, HerbId, TraceId, TransactionId, CertificationId,
+  ActivityId, WeatherId, FieldId, ProcessStatus, InspectionProcess,
+  EnhancedFarm, Field, HerbData, EnhancedTrace, EnhancedTransaction, 
+  FarmingActivity, WeatherData
+} from './types';
 
 // Enhanced database interface
 export interface MockDatabase {
   users: Record<UserId, ReturnType<typeof generateMockUsers>[0]>;
-  farmers: Record<FarmerId, EnhancedFarm>;
-  fields: Record<FieldId, Field>;
-  herbs: Record<HerbId, HerbData>;
-  traces: Record<TraceId, EnhancedTrace>;
-  transactions: Record<TransactionId, EnhancedTransaction>;
+  farmers: Record<FarmerId, import('./types').EnhancedFarm>;
+  fields: Record<FieldId, import('./types').Field>;
+  herbs: Record<HerbId, import('./types').HerbData>;
+  traces: Record<TraceId, import('./types').EnhancedTrace>;
+  transactions: Record<TransactionId, import('./types').EnhancedTransaction>;
   certifications: Record<CertificationId, {
     id: CertificationId;
     type: "gapc" | "euGmp" | "dttm" | "cannabis_license";
@@ -44,6 +51,6 @@ export interface MockDatabase {
       recommendedActions?: string[];
     };
   }>;
-  farmingActivities: Record<ActivityId, FarmingActivity>;
-  weatherData: Record<WeatherId, WeatherData>;
+  farmingActivities: Record<ActivityId, import('./types').FarmingActivity>;
+  weatherData: Record<WeatherId, import('./types').WeatherData>;
 }

@@ -4,19 +4,34 @@ import { Users, ClipboardCheck, Leaf, AlertTriangle } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { ChartSection } from "@/components/herb-trace/ChartSection";
 import { TraceEventsTable } from "@/components/herb-trace/TraceEventsTable";
-import { getDashboardData } from "@/utils/database";
+import { AnalyticsService } from "@/services/analyticsService";
+import { MasterDataService } from "@/services/masterDataService";
+import { ProductionService } from "@/services/productionService";
 
 export default function Dashboard() {
-  const [dashboardData, setDashboardData] = useState<ReturnType<typeof getDashboardData> | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load dashboard data
+    // Load dashboard data using service layer
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = getDashboardData();
-        setDashboardData(data);
+        
+        // Get data from services
+        const farms = MasterDataService.getAllFarms();
+        const traces = ProductionService.getAllTraces().slice(0, 50);
+        const certificationStats = AnalyticsService.getCertificationStatistics();
+        const productionStats = AnalyticsService.getProductionStatistics();
+        
+        setDashboardData({
+          farmers: farms,
+          traces: traces,
+          gapcStatus: certificationStats.gapcStats,
+          euGmpStatus: certificationStats.euGmpStats,
+          dttmStatus: certificationStats.dttmStats,
+          productionStats
+        });
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {

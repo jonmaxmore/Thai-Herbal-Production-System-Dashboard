@@ -9,7 +9,7 @@ import HerbsCatalog from "./herb-trace/HerbsCatalog";
 import CertificationsList from "./herb-trace/CertificationsList";
 import SettingsPanel from "./herb-trace/SettingsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getDashboardData, EnhancedTrace } from "@/utils/mockDatabase";
+import { getDashboardData, EnhancedTrace } from "@/utils/database";
 
 export default function HerbDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
