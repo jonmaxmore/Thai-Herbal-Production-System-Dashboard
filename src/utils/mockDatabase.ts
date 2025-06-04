@@ -11,7 +11,7 @@ import {
   calculateStatusCounts
 } from "./herbData";
 import {
-  MarketplaceTransaction as Transaction,
+  MarketplaceTransaction,
   generateTransactions as originalGenerateTransactions,
   getTransactionTotals
 } from "./marketplaceData";
@@ -37,7 +37,7 @@ export type InspectionProcess = "Lab Testing" | "GACP Certification" | "EU-GMP C
 const cannabisVarieties = [
   "กัญชาพันธุ์ไทย", "กัญชาเชียงใหม่", "กัญชาอีสาน", "กัญชาใต้", "กัญชากรุงเทพ",
   "กัญชาลาว", "กัญชาเขมร", "กัญชาพม่า", "กัญชาอินเดีย", "กัญชาเนปาล",
-  "กัญชาCBD", "กัญชาTHC", "กัญชาไฮบริด", "กัญชาอินดิกา", "กัญชาซาติวา",
+  "กัญชาCBD", "กัญชaTHC", "กัญชาไฮบริด", "กัญชาอินดิกา", "กัญชาซาติวา",
   "กัญชาทางการแพทย์", "กัญชาอุตสาหกรรม", "กัญชาเส้นใย", "กัญชาเมล็ด", "กัญชาใบ",
   "กัญชาน้ำมัน", "กัญชาครีม", "กัญชาผง", "กัญชาสกัด", "กัญชาต้นแห้ง"
 ];
@@ -180,6 +180,14 @@ export interface EnhancedTrace {
   cbdLevel?: number; // For cannabis traces
 }
 
+// Enhanced Transaction type
+export interface EnhancedTransaction extends MarketplaceTransaction {
+  id: string;
+  buyerId?: UserId;
+  sellerId?: UserId;
+  herbId?: HerbId;
+}
+
 // Enhanced database interface
 export interface MockDatabase {
   users: Record<UserId, typeof generatedUsers[0]>;
@@ -187,12 +195,7 @@ export interface MockDatabase {
   fields: Record<FieldId, Field>;
   herbs: Record<HerbId, HerbData>;
   traces: Record<TraceId, EnhancedTrace>;
-  transactions: Record<TransactionId, Transaction & {
-    id: string;
-    buyerId?: UserId;
-    sellerId?: UserId;
-    herbId?: HerbId;
-  }>;
+  transactions: Record<TransactionId, EnhancedTransaction>;
   certifications: Record<CertificationId, {
     id: CertificationId;
     type: "gapc" | "euGmp" | "dttm" | "cannabis_license";
@@ -566,25 +569,26 @@ const createEnhancedDatabase = (): MockDatabase => {
     const seller = randomHerb.farmerId ? farmers[randomHerb.farmerId] : undefined;
     const buyer = consumerUsers[Math.floor(Math.random() * consumerUsers.length)];
     
+    const quantity = Math.floor(Math.random() * 1000) + 10;
+    const pricePerUnit = Math.floor(Math.random() * 500) + 50;
+    const totalAmount = quantity * pricePerUnit;
+    
     transactions[txId] = {
       id: txId,
       herbId: randomHerb.id,
       buyerId: buyer.id,
       sellerId: seller?.userId,
       productName: randomHerb.name,
-      quantity: Math.floor(Math.random() * 1000) + 10,
+      quantity,
       unit: "กิโลกรัม",
-      pricePerUnit: Math.floor(Math.random() * 500) + 50,
-      totalAmount: 0, // Will be calculated
+      pricePerUnit,
+      totalAmount,
       timestamp: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
-      status: ["completed", "pending", "cancelled"][Math.floor(Math.random() * 3)] as any,
+      status: "completed" as any,
       paymentMethod: ["bank_transfer", "cash", "crypto"][Math.floor(Math.random() * 3)] as any,
       location: seller?.location || { lat: 13.7563, lng: 100.5018 },
       notes: `ขาย ${randomHerb.name} คุณภาพดี`
     };
-    
-    // Calculate total amount
-    transactions[txId].totalAmount = transactions[txId].quantity * transactions[txId].pricePerUnit;
   }
 
   return {
@@ -620,6 +624,27 @@ export const getDashboardData = () => {
     dttmStatus[farmer.dttm]++;
   });
 
+  // Prepare recentInspections with all required properties
+  const recentInspections = Object.values(mockDatabase.inspectionProcesses)
+    .slice(0, 10)
+    .map(inspection => {
+      const herb = mockDatabase.herbs[inspection.herbId];
+      const farmer = mockDatabase.farmers[inspection.farmerId];
+      const inspector = inspection.inspectorId ? mockDatabase.users[inspection.inspectorId] : undefined;
+      
+      return {
+        id: inspection.id,
+        herbId: inspection.herbId,
+        herbName: herb?.name || 'Unknown Herb',
+        processType: inspection.processType,
+        status: inspection.status,
+        startDate: inspection.startDate,
+        completionDate: inspection.completionDate,
+        inspectorName: inspector?.fullName,
+        farmerName: farmer?.owner.name
+      };
+    });
+
   return {
     farmers,
     traces,
@@ -642,12 +667,9 @@ export const getDashboardData = () => {
     },
     stakeholdersByRole: [],
     stakeholderInvolvement: [],
-    recentInspections: Object.values(mockDatabase.inspectionProcesses).slice(0, 10)
+    recentInspections
   };
 };
-
-// Export enhanced types and functions
-export type { EnhancedTrace, EnhancedFarm, HerbData, FarmingActivity, WeatherData, Field };
 
 // Backward compatibility exports
 export { getUsersByMonth, getUsersByRole, getUsersByProvince, getUserActivityStats };
