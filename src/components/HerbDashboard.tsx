@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import HerbSidebar from "./HerbSidebar";
 import MobileHeader from "./MobileHeader";
@@ -107,13 +106,10 @@ export default function HerbDashboard() {
             />
           )}
 
-          {/* Certification View with Search and Filter - Convert EnhancedFarm to proper format */}
+          {/* Certification View with Search and Filter - Keep farmers as they are */}
           {activeTab === "certification" && (
             <CertificationsList 
-              farmers={farmers.map(farm => ({
-                ...farm,
-                id: typeof farm.id === 'string' ? parseInt(farm.id.replace('F', ''), 10) || 0 : farm.id
-              }))} 
+              farmers={farmers} 
             />
           )}
 
