@@ -40,16 +40,32 @@ export interface MockDatabase {
   }>;
 }
 
-// Create our lite database singleton - fixed to use ES6 import
-export const mockDatabase = createEnhancedDatabase();
+// Create our enhanced database singleton with reset capability
+let _mockDatabase: MockDatabase | null = null;
 
-// Add missing getUserActivityStats function with proper typing
+export const mockDatabase = (() => {
+  if (!_mockDatabase) {
+    console.log("Initializing new enhanced database...");
+    _mockDatabase = createEnhancedDatabase();
+  }
+  return _mockDatabase;
+})();
+
+// Reset database function
+export const resetDatabase = () => {
+  console.log("Resetting database...");
+  _mockDatabase = null;
+  _mockDatabase = createEnhancedDatabase();
+  return _mockDatabase;
+};
+
+// Enhanced getUserActivityStats function with proper error handling
 export const getUserActivityStats = () => {
   const users = Object.values(mockDatabase.users);
   const activeUsers = users.filter((user: any) => user.status === 'active').length;
   const verifiedUsers = users.filter((user: any) => user.verificationStatus === true).length;
   
-  // Fix the arithmetic operation by ensuring proper number typing
+  // Enhanced arithmetic operation with proper validation
   const totalLogins = users.reduce((sum: number, user: any): number => {
     const userLogins = user.stats?.logins;
     const loginCount = (typeof userLogins === 'number' && !isNaN(userLogins)) ? userLogins : 0;
@@ -57,7 +73,7 @@ export const getUserActivityStats = () => {
   }, 0);
   
   const totalUsers = users.length;
-  const averageLogins = totalUsers > 0 ? totalLogins / totalUsers : 0;
+  const averageLogins = totalUsers > 0 ? Math.round((totalLogins / totalUsers) * 100) / 100 : 0;
   
   return {
     totalUsers,
@@ -68,12 +84,13 @@ export const getUserActivityStats = () => {
   };
 };
 
-// Export simplified functions for dashboard data
+// Enhanced getDashboardData with comprehensive system information
 export const getDashboardData = () => {
   const farmers = Object.values(mockDatabase.farmers) as import('./types').EnhancedFarm[];
-  const traces = Object.values(mockDatabase.traces).slice(0, 20) as import('./types').EnhancedTrace[];
+  const traces = Object.values(mockDatabase.traces).slice(0, 50) as import('./types').EnhancedTrace[];
+  const herbs = Object.values(mockDatabase.herbs) as import('./types').HerbData[];
   
-  // Calculate certification status counts
+  // Calculate detailed certification status counts
   const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
@@ -84,7 +101,7 @@ export const getDashboardData = () => {
     dttmStatus[farmer.dttm as keyof typeof dttmStatus]++;
   });
 
-  // Calculate simplified process stats
+  // Calculate enhanced process statistics
   const allProcesses = Object.values(mockDatabase.inspectionProcesses);
   const statusCounts = {
     "Pending": allProcesses.filter((p: any) => p.status === "Pending").length,
@@ -101,46 +118,58 @@ export const getDashboardData = () => {
     "Quality Control": allProcesses.filter((p: any) => p.processType === "Quality Control").length
   };
 
-  // Mock stakeholder data
+  // Enhanced stakeholder data with real counts
+  const allUsers = Object.values(mockDatabase.users);
   const stakeholdersByRole: import('./types').StakeholderData[] = [
-    { role: "farmers", count: farmers.length },
-    { role: "inspectors", count: 15 },
-    { role: "lab_technicians", count: 8 },
-    { role: "administrators", count: 5 }
+    { role: "farmers", count: allUsers.filter(u => u.role === 'farmer').length },
+    { role: "inspectors", count: allUsers.filter(u => ['lab', 'ttm_officer', 'acfs_officer'].includes(u.role)).length },
+    { role: "manufacturers", count: allUsers.filter(u => u.role === 'manufacturer').length },
+    { role: "administrators", count: allUsers.filter(u => u.role === 'admin').length },
+    { role: "data_consumers", count: allUsers.filter(u => u.role === 'data_consumer').length }
   ];
 
   const stakeholderInvolvement: import('./types').InvolvementData[] = [
-    { status: "active", count: Math.floor(farmers.length * 0.7), category: "user_activity" },
-    { status: "inactive", count: Math.floor(farmers.length * 0.3), category: "user_activity" }
+    { status: "active", count: allUsers.filter(u => u.status === 'active').length, category: "user_activity" },
+    { status: "inactive", count: allUsers.filter(u => u.status === 'inactive').length, category: "user_activity" },
+    { status: "verified", count: allUsers.filter(u => u.verificationStatus === true).length, category: "verification_status" },
+    { status: "pending", count: allUsers.filter(u => u.status === 'pending').length, category: "user_activity" }
   ];
 
-  const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 5).map((process: any) => {
+  // Enhanced recent inspections with complete data
+  const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 10).map((process: any) => {
     const farm = mockDatabase.farmers[process.farmerId];
-    const herb = mockDatabase.herbs[process.herbId || "HERB_001"];
+    const herb = mockDatabase.herbs[process.herbId];
     const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
+    const inspector = process.inspectorId ? mockDatabase.users[process.inspectorId] : null;
     
     return {
       id: process.id,
       farmerId: process.farmerId,
-      herbId: process.herbId || "HERB_001",
-      herbName: herb?.name || "Unknown Herb",
+      herbId: process.herbId,
+      herbName: herb?.name || "ไม่ระบุสมุนไพร",
       processType: process.processType,
       status: process.status,
       startDate: process.startDate,
       completionDate: process.completionDate,
-      inspectorName: "Inspector " + Math.floor(Math.random() * 10 + 1),
-      farmerName: farmer?.fullName || farm?.owner?.name || "Unknown Farmer"
+      inspectorName: inspector?.fullName || "รอมอบหมายผู้ตรวจสอบ",
+      farmerName: farmer?.fullName || farm?.owner?.name || "ไม่ระบุเกษตรกร"
     };
   });
+
+  // Cannabis vs Traditional herb statistics
+  const cannabisHerbs = herbs.filter(h => h.category === 'cannabis').length;
+  const traditionalHerbs = herbs.filter(h => h.category === 'traditional').length;
+  const cannabisPercentage = Math.round((cannabisHerbs / herbs.length) * 100);
 
   return {
     farmers,
     traces,
+    herbs,
     gapcStatus,
     euGmpStatus,
     dttmStatus,
     userStats: getUserActivityStats(),
-    transactions: Object.values(mockDatabase.transactions).slice(0, 10) as import('./types').EnhancedTransaction[],
+    transactions: Object.values(mockDatabase.transactions).slice(0, 20) as import('./types').EnhancedTransaction[],
     totalSales: Object.values(mockDatabase.transactions)
       .filter((tx: any) => tx.status === 'Completed')
       .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0),
@@ -150,11 +179,60 @@ export const getDashboardData = () => {
       totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
       statusCounts,
       processCounts,
-      averageCompletionRate: 0.75,
-      averageFailureRate: 0.15
+      averageCompletionRate: statusCounts.Passed / (statusCounts.Passed + statusCounts.Failed + statusCounts["In Progress"]) || 0,
+      averageFailureRate: statusCounts.Failed / (statusCounts.Passed + statusCounts.Failed + statusCounts["In Progress"]) || 0
     },
     stakeholdersByRole,
     stakeholderInvolvement,
-    recentInspections
+    recentInspections,
+    // New enhanced statistics
+    systemStats: {
+      totalFarms: farmers.length,
+      totalHerbs: herbs.length,
+      totalTraces: Object.keys(mockDatabase.traces).length,
+      totalTransactions: Object.keys(mockDatabase.transactions).length,
+      cannabisPercentage,
+      traditionalPercentage: 100 - cannabisPercentage,
+      organicCertifiedFarms: farmers.filter(f => f.organicCertified).length
+    }
   };
 };
+
+// System health check function
+export const performSystemHealthCheck = () => {
+  const data = getDashboardData();
+  const issues: string[] = [];
+  const improvements: string[] = [];
+
+  // Check data consistency
+  if (data.farmers.length === 0) issues.push("ไม่มีข้อมูลเกษตรกรในระบบ");
+  if (data.herbs.length === 0) issues.push("ไม่มีข้อมูลสมุนไพรในระบบ");
+  if (data.traces.length === 0) issues.push("ไม่มีข้อมูลการตรวจสอบย้อนกลับ");
+  
+  // Check certification distribution
+  const totalCertifications = data.gapcStatus.Passed + data.euGmpStatus.Passed + data.dttmStatus.Passed;
+  if (totalCertifications < data.farmers.length * 0.5) {
+    improvements.push("ควรเพิ่มอัตราการผ่านการรับรองมาตรฐาน");
+  }
+
+  // Check cannabis percentage
+  if (data.systemStats && data.systemStats.cannabisPercentage < 65) {
+    improvements.push("สัดส่วนกัญชายังไม่ถึง 70% ตามเป้าหมาย");
+  }
+
+  return {
+    status: issues.length === 0 ? "สุขภาพระบบดี" : "พบปัญหาในระบบ",
+    issues,
+    improvements,
+    timestamp: new Date().toISOString(),
+    summary: {
+      totalFarms: data.farmers.length,
+      totalUsers: data.userStats.totalUsers,
+      totalProcesses: data.processStats.totalProcesses,
+      cannabisPercentage: data.systemStats?.cannabisPercentage || 0
+    }
+  };
+};
+
+console.log("Enhanced Thai Herbal Production Platform Database initialized");
+console.log("Database contains:", performSystemHealthCheck().summary);
