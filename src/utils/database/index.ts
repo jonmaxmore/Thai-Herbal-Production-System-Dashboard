@@ -4,6 +4,7 @@ import {
   ProcessStatus, InspectionProcess
 } from './types';
 import { generateMockUsers } from "../mockUserData";
+import { createEnhancedDatabase } from './generators';
 
 // Re-export all types in a single export statement to avoid duplicates
 export type {
@@ -39,8 +40,8 @@ export interface MockDatabase {
   }>;
 }
 
-// Create our lite database singleton
-export const mockDatabase = require('./generators').createEnhancedDatabase();
+// Create our lite database singleton - fixed to use ES6 import
+export const mockDatabase = createEnhancedDatabase();
 
 // Add missing getUserActivityStats function with proper typing
 export const getUserActivityStats = () => {
