@@ -12,6 +12,9 @@ export type ProcessStatus = "Pending" | "In Progress" | "Passed" | "Failed" | "E
 // Core inspection processes only
 export type InspectionProcess = "GACP Certification" | "EU-GMP Certification" | "DTTM Certification" | "Quality Control";
 
+// GACP Application Status
+export type GACPApplicationStatus = "Draft" | "Submitted" | "Under Review" | "Pre-Approved" | "Rejected" | "Site Inspection Scheduled" | "Site Inspection Complete" | "Approved" | "Certificate Issued";
+
 // Streamlined Herb type
 export interface HerbData {
   id: string;
@@ -45,6 +48,9 @@ export interface EnhancedFarm {
   organicCertified: boolean;
   lastInspectionDate: string;
   cultivationArea: number;
+  registrationNumber?: string;
+  establishedYear?: number;
+  nextInspectionDate?: string;
 }
 
 // Simplified Trace type
@@ -67,6 +73,10 @@ export interface EnhancedTrace {
   certifications: string[];
   temperature?: number;
   humidity?: number;
+  moistureLevel?: number;
+  notes?: string;
+  referenceCode?: string;
+  herbName?: string;
 }
 
 // Simplified Transaction type
@@ -80,4 +90,47 @@ export interface EnhancedTransaction {
   status: "Completed" | "Pending" | "Failed";
   paymentMethod: string;
   herbId: HerbId;
+}
+
+// GACP Application Interface
+export interface GACPApplication {
+  id: string;
+  farmerId: FarmerId;
+  userId: UserId;
+  status: GACPApplicationStatus;
+  submittedDate?: Date;
+  farmData: {
+    name: string;
+    location: {
+      lat: number;
+      lng: number;
+    };
+    province: string;
+    cultivationArea: number;
+    crops: string[];
+    farmImages: string[];
+  };
+  labResults: {
+    files: string[];
+    uploadDate?: Date;
+  };
+  preApprovalData?: {
+    aiAnalysisResult: string;
+    videoCallDate?: Date;
+    videoCallStatus?: "Scheduled" | "Completed" | "Failed";
+    preApprovalResult?: "Approved" | "Rejected";
+    rejectionReason?: string;
+  };
+  siteInspection?: {
+    scheduledDate?: Date;
+    inspectors: string[];
+    inspectionResult?: "Passed" | "Failed";
+    notes?: string;
+  };
+  certificateData?: {
+    certificateNumber?: string;
+    issueDate?: Date;
+    expiryDate?: Date;
+    certificateFile?: string;
+  };
 }

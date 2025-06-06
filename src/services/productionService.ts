@@ -46,4 +46,16 @@ export class ProductionService {
     
     return Array.from(batches.values());
   }
+
+  // Mock farming activities - to fix the API error
+  static getFarmingActivities() {
+    return [
+      { id: "1", farmId: "FARM_001", activity: "Planting", date: "2024-01-15" },
+      { id: "2", farmId: "FARM_002", activity: "Harvesting", date: "2024-02-10" }
+    ];
+  }
+
+  static getActivitiesByFarm(farmId: string) {
+    return this.getFarmingActivities().filter(activity => activity.farmId === farmId);
+  }
 }

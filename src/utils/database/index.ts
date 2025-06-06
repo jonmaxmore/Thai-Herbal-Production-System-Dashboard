@@ -31,6 +31,34 @@ export const getDashboardData = () => {
     "Expired": allProcesses.filter(p => p.status === "Expired").length
   };
 
+  const processCounts = {
+    "GACP Certification": allProcesses.filter(p => p.processType === "GACP Certification").length,
+    "EU-GMP Certification": allProcesses.filter(p => p.processType === "EU-GMP Certification").length,
+    "DTTM Certification": allProcesses.filter(p => p.processType === "DTTM Certification").length,
+    "Quality Control": allProcesses.filter(p => p.processType === "Quality Control").length
+  };
+
+  // Mock stakeholder data
+  const stakeholdersByRole = {
+    farmers: farmers.length,
+    inspectors: 15,
+    lab_technicians: 8,
+    administrators: 5
+  };
+
+  const stakeholderInvolvement = {
+    active: Math.floor(farmers.length * 0.7),
+    inactive: Math.floor(farmers.length * 0.3)
+  };
+
+  const recentInspections = allProcesses.slice(0, 5).map(process => ({
+    id: process.id,
+    farmerId: process.farmerId,
+    processType: process.processType,
+    status: process.status,
+    date: process.startDate
+  }));
+
   return {
     farmers,
     traces,
@@ -47,8 +75,13 @@ export const getDashboardData = () => {
     processStats: {
       totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
       statusCounts,
-      averageCompletionRate: 0.75
-    }
+      processCounts,
+      averageCompletionRate: 0.75,
+      averageFailureRate: 0.15
+    },
+    stakeholdersByRole,
+    stakeholderInvolvement,
+    recentInspections
   };
 };
 
@@ -58,4 +91,4 @@ export const generateTraces = (count: number) => Object.values(mockDatabase.trac
 export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
 
 // Re-export types for convenience
-export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess } from './types';
+export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus } from './types';

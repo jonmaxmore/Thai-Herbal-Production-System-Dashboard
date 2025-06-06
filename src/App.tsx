@@ -11,6 +11,7 @@ import MapView from "./pages/herb-trace/MapView";
 import SettingsView from "./pages/herb-trace/SettingsView";
 import Marketplace from "./pages/herb-trace/Marketplace";
 import PlatformOverview from "./pages/herb-trace/PlatformOverview";
+import GACPApplications from "./pages/herb-trace/GACPApplications";
 import RoleSelector from "./components/RoleSelector";
 
 import { Toaster } from "./components/ui/toaster";
@@ -26,6 +27,7 @@ function App() {
         <Route path="/herb-trace/herbs" element={<HerbCatalog />} />
         <Route path="/herb-trace/trace" element={<TraceabilityView />} />
         <Route path="/herb-trace/certification" element={<CertificationView />} />
+        <Route path="/herb-trace/gacp-applications" element={<GACPApplications />} />
         <Route path="/herb-trace/map" element={<MapView />} />
         <Route path="/herb-trace/settings" element={<SettingsView />} />
         <Route path="/herb-trace/marketplace" element={<Marketplace />} />
