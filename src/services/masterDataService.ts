@@ -2,15 +2,16 @@
 // Simplified Master Data Services - Core functionality only
 import { HerbId, FarmerId } from '@/utils/database/types';
 import { mockDatabase } from '@/utils/database';
+import { HerbData, EnhancedFarm } from '@/utils/database/types';
 
 export class MasterDataService {
   // Core herb services
   static getAllHerbs() {
-    return Object.values(mockDatabase.herbs);
+    return Object.values(mockDatabase.herbs) as HerbData[];
   }
 
   static getHerbById(herbId: HerbId) {
-    return mockDatabase.herbs[herbId];
+    return mockDatabase.herbs[herbId] as HerbData;
   }
 
   static getCannabisHerbs() {
@@ -23,11 +24,11 @@ export class MasterDataService {
 
   // Core farm services
   static getAllFarms() {
-    return Object.values(mockDatabase.farmers);
+    return Object.values(mockDatabase.farmers) as EnhancedFarm[];
   }
 
   static getFarmById(farmerId: FarmerId) {
-    return mockDatabase.farmers[farmerId];
+    return mockDatabase.farmers[farmerId] as EnhancedFarm;
   }
 
   static getFarmsByProvince(province: string) {

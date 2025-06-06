@@ -15,6 +15,18 @@ export type InspectionProcess = "GACP Certification" | "EU-GMP Certification" | 
 // GACP Application Status
 export type GACPApplicationStatus = "Draft" | "Submitted" | "Under Review" | "Pre-Approved" | "Rejected" | "Site Inspection Scheduled" | "Site Inspection Complete" | "Approved" | "Certificate Issued";
 
+// Marketplace transaction type (added to fix missing type error)
+export interface MarketplaceTransaction {
+  id: string;
+  userId: string;
+  timestamp: Date;
+  amount: number;
+  productName: string;
+  quantity: number;
+  status: "Completed" | "Pending" | "Failed";
+  paymentMethod: string;
+}
+
 // Individual Plant Tracking - New QR Code System
 export interface PlantData {
   id: string;

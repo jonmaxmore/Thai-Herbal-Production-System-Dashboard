@@ -42,29 +42,33 @@ export interface MockDatabase {
 // Create our lite database singleton
 export const mockDatabase = require('./generators').createEnhancedDatabase();
 
-// Add missing getUserActivityStats function
+// Add missing getUserActivityStats function with proper typing
 export const getUserActivityStats = () => {
   const users = Object.values(mockDatabase.users);
+  const activeUsers = users.filter((user: any) => user.status === 'active').length;
+  const verifiedUsers = users.filter((user: any) => user.verificationStatus === true).length;
+  const totalLogins = users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0);
+  
   return {
     totalUsers: users.length,
-    activeUsers: users.filter((user: any) => user.status === 'active').length,
-    totalLogins: users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0),
-    averageLogins: users.length > 0 ? 
-      users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0) / users.length : 0
+    activeUsers,
+    verifiedUsers,
+    totalLogins,
+    averageLogins: users.length > 0 ? totalLogins / users.length : 0
   };
 };
 
 // Export simplified functions for dashboard data
 export const getDashboardData = () => {
-  const farmers = Object.values(mockDatabase.farmers);
-  const traces = Object.values(mockDatabase.traces).slice(0, 20);
+  const farmers = Object.values(mockDatabase.farmers) as import('./types').EnhancedFarm[];
+  const traces = Object.values(mockDatabase.traces).slice(0, 20) as import('./types').EnhancedTrace[];
   
   // Calculate certification status counts
   const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   
-  farmers.forEach((farmer: any) => {
+  farmers.forEach((farmer) => {
     gapcStatus[farmer.gacp as keyof typeof gapcStatus]++;
     euGmpStatus[farmer.euGmp as keyof typeof euGmpStatus]++;
     dttmStatus[farmer.dttm as keyof typeof dttmStatus]++;
@@ -126,10 +130,10 @@ export const getDashboardData = () => {
     euGmpStatus,
     dttmStatus,
     userStats: getUserActivityStats(),
-    transactions: Object.values(mockDatabase.transactions).slice(0, 10),
+    transactions: Object.values(mockDatabase.transactions).slice(0, 10) as import('./types').EnhancedTransaction[],
     totalSales: Object.values(mockDatabase.transactions)
       .filter((tx: any) => tx.status === 'Completed')
-      .reduce((sum: number, tx: any) => sum + tx.amount, 0),
+      .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0),
     pendingOrders: Object.values(mockDatabase.transactions)
       .filter((tx: any) => tx.status === 'Pending').length,
     processStats: {

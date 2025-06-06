@@ -1,55 +1,44 @@
 
-// User Services Layer - Based on Business Logic Layer from architecture
-import { UserId } from '@/utils/database/types';
+// User Service - Core user management functionality
 import { mockDatabase } from '@/utils/database';
+import { generateMockUsers } from '@/utils/mockUserData';
 
 export class UserService {
-  // Authentication services
-  static async authenticateUser(email: string, password: string) {
-    const users = Object.values(mockDatabase.users);
-    const user = users.find(u => u.email === email);
-    
-    if (user && password) {
-      return {
-        success: true,
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        }
-      };
-    }
-    
-    return { success: false, error: 'Invalid credentials' };
-  }
-
-  // User management services
-  static getUserById(userId: UserId) {
-    return mockDatabase.users[userId];
-  }
-
+  // Get all users
   static getAllUsers() {
-    return Object.values(mockDatabase.users);
+    const users = generateMockUsers(300);
+    return users;
   }
 
-  // Role and permission services
-  static getUserPermissions(userId: UserId) {
-    const user = this.getUserById(userId);
-    if (!user) return [];
-
-    const rolePermissions = {
-      admin: ['view_all', 'edit_all', 'delete_all', 'manage_users'],
-      farmer: ['view_own', 'edit_own', 'create_records'],
-      inspector: ['view_all', 'edit_inspections', 'create_inspections'],
-      viewer: ['view_limited']
-    };
-
-    return rolePermissions[user.role] || [];
+  // Get user by email
+  static getUserByEmail(email: string) {
+    const users = this.getAllUsers();
+    return users.find(user => user.email === email);
   }
 
-  static hasPermission(userId: UserId, permission: string): boolean {
-    const permissions = this.getUserPermissions(userId);
-    return permissions.includes(permission);
+  // Get user statistics
+  static getUserStatistics() {
+    const users = this.getAllUsers();
+    return users.map(user => ({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      loginCount: user.stats.logins,
+      lastLogin: user.lastLoginDate
+    }));
+  }
+
+  // Get users by role
+  static getUsersByRole(role: string) {
+    const users = this.getAllUsers();
+    return users.filter(user => user.role === role);
+  }
+
+  // Get active users
+  static getActiveUsers() {
+    const users = this.getAllUsers();
+    return users.filter(user => user.status === 'active');
   }
 }

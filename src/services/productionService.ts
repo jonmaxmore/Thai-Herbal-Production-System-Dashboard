@@ -1,16 +1,16 @@
 
 // Simplified Production Services - Core traceability only
-import { FarmerId, TraceId } from '@/utils/database/types';
+import { FarmerId, TraceId, EnhancedTrace } from '@/utils/database/types';
 import { mockDatabase } from '@/utils/database';
 
 export class ProductionService {
   // Core trace services
   static getAllTraces() {
-    return Object.values(mockDatabase.traces);
+    return Object.values(mockDatabase.traces) as EnhancedTrace[];
   }
 
   static getTraceById(traceId: TraceId) {
-    return mockDatabase.traces[traceId];
+    return mockDatabase.traces[traceId] as EnhancedTrace;
   }
 
   static getTracesByFarm(farmId: FarmerId) {
