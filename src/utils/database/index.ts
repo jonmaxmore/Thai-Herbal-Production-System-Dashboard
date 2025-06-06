@@ -5,20 +5,19 @@ import {
 } from './types';
 import { generateMockUsers } from "../mockUserData";
 
-// Re-export types for easy access
+// Re-export all types in a single export statement to avoid duplicates
 export type {
   UserId, FarmerId, HerbId, TraceId, CertificationId,
   ProcessStatus, InspectionProcess,
-  EnhancedFarm, HerbData, EnhancedTrace, EnhancedTransaction
+  EnhancedFarm, HerbData, EnhancedTrace, EnhancedTransaction,
+  GACPApplication, GACPApplicationStatus, InspectionProcessData, 
+  StakeholderData, InvolvementData
 } from './types';
 
 // Simplified backward compatibility exports
 export const generateFarmers = (count: number) => Object.values(mockDatabase.farmers).slice(0, count);
 export const generateTraces = (count: number) => Object.values(mockDatabase.traces).slice(0, count);
 export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
-
-// Re-export types for convenience
-export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus, InspectionProcessData, StakeholderData, InvolvementData } from './types';
 
 // Simplified database interface
 export interface MockDatabase {
@@ -43,6 +42,18 @@ export interface MockDatabase {
 // Create our lite database singleton
 export const mockDatabase = require('./generators').createEnhancedDatabase();
 
+// Add missing getUserActivityStats function
+export const getUserActivityStats = () => {
+  const users = Object.values(mockDatabase.users);
+  return {
+    totalUsers: users.length,
+    activeUsers: users.filter((user: any) => user.status === 'active').length,
+    totalLogins: users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0),
+    averageLogins: users.length > 0 ? 
+      users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0) / users.length : 0
+  };
+};
+
 // Export simplified functions for dashboard data
 export const getDashboardData = () => {
   const farmers = Object.values(mockDatabase.farmers);
@@ -53,27 +64,27 @@ export const getDashboardData = () => {
   const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   
-  farmers.forEach(farmer => {
-    gapcStatus[farmer.gacp]++;
-    euGmpStatus[farmer.euGmp]++;
-    dttmStatus[farmer.dttm]++;
+  farmers.forEach((farmer: any) => {
+    gapcStatus[farmer.gacp as keyof typeof gapcStatus]++;
+    euGmpStatus[farmer.euGmp as keyof typeof euGmpStatus]++;
+    dttmStatus[farmer.dttm as keyof typeof dttmStatus]++;
   });
 
   // Calculate simplified process stats
   const allProcesses = Object.values(mockDatabase.inspectionProcesses);
   const statusCounts = {
-    "Pending": allProcesses.filter(p => p.status === "Pending").length,
-    "In Progress": allProcesses.filter(p => p.status === "In Progress").length,
-    "Passed": allProcesses.filter(p => p.status === "Passed").length,
-    "Failed": allProcesses.filter(p => p.status === "Failed").length,
-    "Expired": allProcesses.filter(p => p.status === "Expired").length
+    "Pending": allProcesses.filter((p: any) => p.status === "Pending").length,
+    "In Progress": allProcesses.filter((p: any) => p.status === "In Progress").length,
+    "Passed": allProcesses.filter((p: any) => p.status === "Passed").length,
+    "Failed": allProcesses.filter((p: any) => p.status === "Failed").length,
+    "Expired": allProcesses.filter((p: any) => p.status === "Expired").length
   };
 
   const processCounts = {
-    "GACP Certification": allProcesses.filter(p => p.processType === "GACP Certification").length,
-    "EU-GMP Certification": allProcesses.filter(p => p.processType === "EU-GMP Certification").length,
-    "DTTM Certification": allProcesses.filter(p => p.processType === "DTTM Certification").length,
-    "Quality Control": allProcesses.filter(p => p.processType === "Quality Control").length
+    "GACP Certification": allProcesses.filter((p: any) => p.processType === "GACP Certification").length,
+    "EU-GMP Certification": allProcesses.filter((p: any) => p.processType === "EU-GMP Certification").length,
+    "DTTM Certification": allProcesses.filter((p: any) => p.processType === "DTTM Certification").length,
+    "Quality Control": allProcesses.filter((p: any) => p.processType === "Quality Control").length
   };
 
   // Mock stakeholder data
@@ -89,7 +100,7 @@ export const getDashboardData = () => {
     { status: "inactive", count: Math.floor(farmers.length * 0.3), category: "user_activity" }
   ];
 
-  const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 5).map(process => {
+  const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 5).map((process: any) => {
     const farm = mockDatabase.farmers[process.farmerId];
     const herb = mockDatabase.herbs[process.herbId || "HERB_001"];
     const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
@@ -117,10 +128,10 @@ export const getDashboardData = () => {
     userStats: getUserActivityStats(),
     transactions: Object.values(mockDatabase.transactions).slice(0, 10),
     totalSales: Object.values(mockDatabase.transactions)
-      .filter(tx => tx.status === 'Completed')
-      .reduce((sum, tx) => sum + tx.amount, 0),
+      .filter((tx: any) => tx.status === 'Completed')
+      .reduce((sum: number, tx: any) => sum + tx.amount, 0),
     pendingOrders: Object.values(mockDatabase.transactions)
-      .filter(tx => tx.status === 'Pending').length,
+      .filter((tx: any) => tx.status === 'Pending').length,
     processStats: {
       totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
       statusCounts,
