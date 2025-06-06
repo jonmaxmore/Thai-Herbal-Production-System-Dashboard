@@ -1,6 +1,15 @@
-
-// List of Thai herbs
+// List of Thai herbs including cannabis and kratom
 export const herbList = [
+  // Cannabis varieties
+  "กัญชาพันธุ์ไทย", "กัญชาเชียงใหม่", "กัญชาอีสาน", "กัญชาใต้", 
+  "กัญชา CBD", "กัญชา THC", "กัญชาทางการแพทย์", "กัญชาอุตสาหกรรม",
+  "กัญชาใบ", "กัญชาดอก", "กัญชาเมล็ด", "กัญชาต้น",
+  
+  // Kratom varieties
+  "กระท่อมใบเขียว", "กระท่อมใบแดง", "กระท่อมใบขาว", "กระท่อมไทย",
+  "กระท่อมภาคใต้", "กระท่อมภาคเหนือ", "กระท่อมแห้ง", "กระท่อมสด",
+  
+  // Traditional herbs
   "ใบบัวบก", "ใบเตย", "ใบย่านาง", "กุ่ยช่าย", "โหระพา", "ข่า", "ขมิ้น", "ขิง", "กระชาย", "กะเพรา",
   "กระเทียม", "แมงลัก", "ผักชี", "ผักชีฝรั่ง", "ผักชีลาว", "ผักไผ่", "พริกชี้ฟ้า", "พริกขี้หนู", "พริกขี้หนูสวน", "พริกไทยอ่อน",
   "พริกหยวก", "รากผักชี", "สะระแหน่", "ตะไคร้", "มะกรูด", "ดีปลี", "ดอกเงี้ยว", "กานพลู", "ลูกจันทน์เทศ", "มะแขว่น",
@@ -12,8 +21,32 @@ export const herbList = [
   "ดอกโสน", "หัวปลี", "เล็บครุฑ", "ผักเหลียง", "ผักเลือด", "เพกา"
 ];
 
-// Herb name translations (Thai -> English)
+// Herb name translations (Thai -> English) including cannabis and kratom
 export const herbTranslations: Record<string, string> = {
+  // Cannabis translations
+  "กัญชาพันธุ์ไทย": "Thai Cannabis",
+  "กัญชาเชียงใหม่": "Chiang Mai Cannabis",
+  "กัญชาอีสาน": "Isan Cannabis", 
+  "กัญชาใต้": "Southern Cannabis",
+  "กัญชา CBD": "CBD Cannabis",
+  "กัญชา THC": "THC Cannabis",
+  "กัญชาทางการแพทย์": "Medical Cannabis",
+  "กัญชาอุตสาหกรรม": "Industrial Hemp",
+  "กัญชาใบ": "Cannabis Leaves",
+  "กัญชาดอก": "Cannabis Flowers",
+  "กัญชาเมล็ด": "Cannabis Seeds",
+  "กัญชาต้น": "Cannabis Plant",
+  
+  // Kratom translations
+  "กระท่อมใบเขียว": "Green Vein Kratom",
+  "กระท่อมใบแดง": "Red Vein Kratom",
+  "กระท่อมใบขาว": "White Vein Kratom",
+  "กระท่อมไทย": "Thai Kratom",
+  "กระท่อมภาคใต้": "Southern Kratom",
+  "กระท่อมภาคเหนือ": "Northern Kratom",
+  "กระท่อมแห้ง": "Dried Kratom",
+  "กระท่อมสด": "Fresh Kratom",
+  
   "ใบบัวบก": "Gotu Kola",
   "ใบเตย": "Pandan Leaf",
   "ใบย่านาง": "Yanang Leaf",
@@ -104,6 +137,13 @@ export const herbTranslations: Record<string, string> = {
 
 // Generate placeholder images (in production you'd use real herb images)
 export const getHerbImage = (herbName: string): string => {
+  // Special images for cannabis and kratom if needed
+  if (herbName.includes('กัญชา')) {
+    return `https://via.placeholder.com/150?text=${encodeURIComponent('Cannabis')}`;
+  }
+  if (herbName.includes('กระท่อม')) {
+    return `https://via.placeholder.com/150?text=${encodeURIComponent('Kratom')}`;
+  }
   return `https://via.placeholder.com/150?text=${encodeURIComponent(herbName)}`;
 };
 

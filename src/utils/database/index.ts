@@ -1,10 +1,47 @@
 
-import { createEnhancedDatabase } from './generators';
-import { getUserActivityStats } from "../mockUserData";
-import { InspectionProcessData, StakeholderData, InvolvementData } from './types';
+import { 
+  UserId, FarmerId, HerbId, TraceId, CertificationId, 
+  ProcessStatus, InspectionProcess
+} from './types';
+import { generateMockUsers } from "../mockUserData";
+
+// Re-export types for easy access
+export type {
+  UserId, FarmerId, HerbId, TraceId, CertificationId,
+  ProcessStatus, InspectionProcess,
+  EnhancedFarm, HerbData, EnhancedTrace, EnhancedTransaction
+} from './types';
+
+// Simplified backward compatibility exports
+export const generateFarmers = (count: number) => Object.values(mockDatabase.farmers).slice(0, count);
+export const generateTraces = (count: number) => Object.values(mockDatabase.traces).slice(0, count);
+export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
+
+// Re-export types for convenience
+export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus, InspectionProcessData, StakeholderData, InvolvementData } from './types';
+
+// Simplified database interface
+export interface MockDatabase {
+  users: Record<UserId, ReturnType<typeof generateMockUsers>[0]>;
+  farmers: Record<FarmerId, import('./types').EnhancedFarm>;
+  herbs: Record<HerbId, import('./types').HerbData>;
+  traces: Record<TraceId, import('./types').EnhancedTrace>;
+  transactions: Record<string, import('./types').EnhancedTransaction>;
+  inspectionProcesses: Record<string, {
+    id: string;
+    herbId: HerbId;
+    farmerId: FarmerId;
+    processType: InspectionProcess;
+    status: ProcessStatus;
+    startDate: Date;
+    completionDate?: Date;
+    inspectorId?: UserId;
+    notes?: string;
+  }>;
+}
 
 // Create our lite database singleton
-export const mockDatabase = createEnhancedDatabase();
+export const mockDatabase = require('./generators').createEnhancedDatabase();
 
 // Export simplified functions for dashboard data
 export const getDashboardData = () => {
@@ -40,19 +77,19 @@ export const getDashboardData = () => {
   };
 
   // Mock stakeholder data
-  const stakeholdersByRole: StakeholderData[] = [
+  const stakeholdersByRole: import('./types').StakeholderData[] = [
     { role: "farmers", count: farmers.length },
     { role: "inspectors", count: 15 },
     { role: "lab_technicians", count: 8 },
     { role: "administrators", count: 5 }
   ];
 
-  const stakeholderInvolvement: InvolvementData[] = [
-    { status: "active", count: Math.floor(farmers.length * 0.7) },
-    { status: "inactive", count: Math.floor(farmers.length * 0.3) }
+  const stakeholderInvolvement: import('./types').InvolvementData[] = [
+    { status: "active", count: Math.floor(farmers.length * 0.7), category: "user_activity" },
+    { status: "inactive", count: Math.floor(farmers.length * 0.3), category: "user_activity" }
   ];
 
-  const recentInspections: InspectionProcessData[] = allProcesses.slice(0, 5).map(process => {
+  const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 5).map(process => {
     const farm = mockDatabase.farmers[process.farmerId];
     const herb = mockDatabase.herbs[process.herbId || "HERB_001"];
     const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
@@ -96,11 +133,3 @@ export const getDashboardData = () => {
     recentInspections
   };
 };
-
-// Simplified backward compatibility exports
-export const generateFarmers = (count: number) => Object.values(mockDatabase.farmers).slice(0, count);
-export const generateTraces = (count: number) => Object.values(mockDatabase.traces).slice(0, count);
-export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
-
-// Re-export types for convenience
-export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus, InspectionProcessData, StakeholderData, InvolvementData } from './types';

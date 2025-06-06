@@ -12,6 +12,7 @@ import SettingsView from "./pages/herb-trace/SettingsView";
 import Marketplace from "./pages/herb-trace/Marketplace";
 import PlatformOverview from "./pages/herb-trace/PlatformOverview";
 import GACPApplications from "./pages/herb-trace/GACPApplications";
+import UserManagement from "./pages/herb-trace/UserManagement";
 import RoleSelector from "./components/RoleSelector";
 
 import { Toaster } from "./components/ui/toaster";
@@ -32,6 +33,7 @@ function App() {
         <Route path="/herb-trace/settings" element={<SettingsView />} />
         <Route path="/herb-trace/marketplace" element={<Marketplace />} />
         <Route path="/herb-trace/overview" element={<PlatformOverview />} />
+        <Route path="/herb-trace/users" element={<UserManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
