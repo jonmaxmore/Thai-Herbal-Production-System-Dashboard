@@ -1,3 +1,4 @@
+
 import { 
   UserId, FarmerId, HerbId, TraceId, CertificationId, 
   ProcessStatus, InspectionProcess
@@ -46,9 +47,12 @@ export const getUserActivityStats = () => {
   const users = Object.values(mockDatabase.users);
   const activeUsers = users.filter((user: any) => user.status === 'active').length;
   const verifiedUsers = users.filter((user: any) => user.verificationStatus === true).length;
-  const totalLogins = users.reduce((sum: number, user: any) => {
-    const userLogins = user.stats?.logins || 0;
-    return sum + (typeof userLogins === 'number' ? userLogins : 0);
+  
+  // Fix the arithmetic operation by ensuring proper number typing
+  const totalLogins = users.reduce((sum: number, user: any): number => {
+    const userLogins = user.stats?.logins;
+    const loginCount = (typeof userLogins === 'number' && !isNaN(userLogins)) ? userLogins : 0;
+    return sum + loginCount;
   }, 0);
   
   const totalUsers = users.length;
