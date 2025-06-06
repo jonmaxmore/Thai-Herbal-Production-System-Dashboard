@@ -1,4 +1,3 @@
-
 import { 
   UserId, FarmerId, HerbId, TraceId, CertificationId, 
   ProcessStatus, InspectionProcess
@@ -52,12 +51,15 @@ export const getUserActivityStats = () => {
     return sum + (typeof userLogins === 'number' ? userLogins : 0);
   }, 0);
   
+  const totalUsers = users.length;
+  const averageLogins = totalUsers > 0 ? totalLogins / totalUsers : 0;
+  
   return {
-    totalUsers: users.length,
+    totalUsers,
     activeUsers,
     verifiedUsers,
     totalLogins,
-    averageLogins: users.length > 0 ? totalLogins / users.length : 0
+    averageLogins
   };
 };
 
