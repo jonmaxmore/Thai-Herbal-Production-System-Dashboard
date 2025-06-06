@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import StatusBadge from "@/components/StatusBadge";
-import { CertificationStatus } from "@/utils/herbData";
+import { ProcessStatus } from "@/utils/database/types";
 import { EnhancedFarm } from "@/utils/database";
 
 interface CertificationsListProps {
@@ -15,7 +15,7 @@ interface CertificationsListProps {
 
 export default function CertificationsList({ farmers }: CertificationsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<CertificationStatus | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<ProcessStatus | "All">("All");
   
   // Filter farmers based on search term and status filter
   const filteredFarmers = farmers.filter(farmer => {
@@ -25,10 +25,9 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
       : true;
     
     const matchesStatus = statusFilter !== "All" 
-      ? farmer.gacp?.status === statusFilter || 
+      ? farmer.gacp === statusFilter || 
         farmer.euGmp === statusFilter || 
-        farmer.dttm === statusFilter || 
-        farmer.tis === statusFilter
+        farmer.dttm === statusFilter
       : true;
     
     return matchesSearch && matchesStatus;
@@ -53,7 +52,7 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
           <Filter className="h-5 w-5 text-green-600" />
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as CertificationStatus | "All")}
+            onValueChange={(value) => setStatusFilter(value as ProcessStatus | "All")}
           >
             <SelectTrigger className="w-[180px] border-green-200">
               <SelectValue placeholder="Filter by status" />
@@ -63,7 +62,8 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
               <SelectItem value="Passed">Passed</SelectItem>
               <SelectItem value="Failed">Failed</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
+              <SelectItem value="Expired">Expired</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -80,8 +80,7 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
                   <TableHead>Herb</TableHead>
                   <TableHead>GACP</TableHead>
                   <TableHead>EU-GMP</TableHead>
-                  <TableHead>DTTAM</TableHead>
-                  <TableHead>TIS</TableHead>
+                  <TableHead>DTTM</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,10 +89,9 @@ export default function CertificationsList({ farmers }: CertificationsListProps)
                     <TableCell>{farmer.id}</TableCell>
                     <TableCell>{farmer.name}</TableCell>
                     <TableCell>{farmer.herb}</TableCell>
-                    <TableCell><StatusBadge status={farmer.gacp?.status || "Pending"} /></TableCell>
+                    <TableCell><StatusBadge status={farmer.gacp} /></TableCell>
                     <TableCell><StatusBadge status={farmer.euGmp} /></TableCell>
                     <TableCell><StatusBadge status={farmer.dttm} /></TableCell>
-                    <TableCell><StatusBadge status={farmer.tis} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

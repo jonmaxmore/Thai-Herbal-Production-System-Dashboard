@@ -52,18 +52,24 @@ export const getDashboardData = () => {
     { status: "inactive", count: Math.floor(farmers.length * 0.3) }
   ];
 
-  const recentInspections: InspectionProcessData[] = allProcesses.slice(0, 5).map(process => ({
-    id: process.id,
-    farmerId: process.farmerId,
-    herbId: process.herbId || "HERB_001",
-    herbName: process.herbName || "Unknown Herb",
-    processType: process.processType,
-    status: process.status,
-    startDate: process.startDate,
-    completionDate: process.completionDate,
-    inspectorName: process.inspectorName,
-    farmerName: process.farmerName
-  }));
+  const recentInspections: InspectionProcessData[] = allProcesses.slice(0, 5).map(process => {
+    const farm = mockDatabase.farmers[process.farmerId];
+    const herb = mockDatabase.herbs[process.herbId || "HERB_001"];
+    const farmer = farm?.userId ? mockDatabase.users[farm.userId] : null;
+    
+    return {
+      id: process.id,
+      farmerId: process.farmerId,
+      herbId: process.herbId || "HERB_001",
+      herbName: herb?.name || "Unknown Herb",
+      processType: process.processType,
+      status: process.status,
+      startDate: process.startDate,
+      completionDate: process.completionDate,
+      inspectorName: "Inspector " + Math.floor(Math.random() * 10 + 1),
+      farmerName: farmer?.fullName || farm?.owner?.name || "Unknown Farmer"
+    };
+  });
 
   return {
     farmers,

@@ -135,7 +135,7 @@ export interface GACPApplication {
   };
 }
 
-// Add inspection process interface
+// Add inspection process interface with all required properties
 export interface InspectionProcessData {
   id: string;
   farmerId: string;

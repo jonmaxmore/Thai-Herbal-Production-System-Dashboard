@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend
 } from "recharts";
-import { InspectionProcess, ProcessStatus } from "@/utils/mockDatabase";
+import { InspectionProcess, ProcessStatus } from "@/utils/database/types";
 
 interface ProcessFlowSectionProps {
   processStats: {
@@ -31,12 +31,10 @@ interface ProcessFlowSectionProps {
 
 // Status color mapping
 const statusColors: Record<ProcessStatus, string> = {
-  "Not Started": "#94a3b8",
   "In Progress": "#3b82f6",
   "Passed": "#22c55e",
   "Failed": "#ef4444",
-  "Pending Review": "#eab308",
-  "Certified": "#14b8a6",
+  "Pending": "#eab308",
   "Expired": "#6b7280"
 };
 
@@ -140,7 +138,7 @@ export function ProcessFlowSection({ processStats, recentInspections }: ProcessF
                           ${inspection.status === "Passed" ? "bg-green-100 text-green-800 border-green-300" : 
                             inspection.status === "Failed" ? "bg-red-100 text-red-800 border-red-300" :
                             inspection.status === "In Progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                            inspection.status === "Pending Review" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
+                            inspection.status === "Pending" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
                             "bg-gray-100 text-gray-800 border-gray-300"}
                         `}
                       >

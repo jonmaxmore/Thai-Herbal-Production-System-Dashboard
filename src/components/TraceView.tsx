@@ -251,17 +251,17 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                       <div className="bg-green-50 p-4 rounded-md space-y-3">
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">GACP:</div>
-                                          <StatusBadge status={selectedFarm.gacp?.status || "Pending"} />
+                                          <StatusBadge status={selectedFarm.gacp} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">EU-GMP:</div>
-                                          <StatusBadge status={selectedFarm.euGmp || "Pending"} />
+                                          <StatusBadge status={selectedFarm.euGmp} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">กรมแพทย์แผนไทยฯ:</div>
-                                          <StatusBadge status={selectedFarm.dttm || "Pending"} />
+                                          <StatusBadge status={selectedFarm.dttm} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
