@@ -47,7 +47,10 @@ export const getUserActivityStats = () => {
   const users = Object.values(mockDatabase.users);
   const activeUsers = users.filter((user: any) => user.status === 'active').length;
   const verifiedUsers = users.filter((user: any) => user.verificationStatus === true).length;
-  const totalLogins = users.reduce((sum: number, user: any) => sum + (user.stats?.logins || 0), 0);
+  const totalLogins = users.reduce((sum: number, user: any) => {
+    const userLogins = user.stats?.logins || 0;
+    return sum + (typeof userLogins === 'number' ? userLogins : 0);
+  }, 0);
   
   return {
     totalUsers: users.length,
