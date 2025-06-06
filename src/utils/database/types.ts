@@ -134,3 +134,28 @@ export interface GACPApplication {
     certificateFile?: string;
   };
 }
+
+// Add inspection process interface
+export interface InspectionProcessData {
+  id: string;
+  farmerId: string;
+  herbId: string;
+  herbName: string;
+  processType: InspectionProcess;
+  status: ProcessStatus;
+  startDate: Date;
+  completionDate?: Date;
+  inspectorName?: string;
+  farmerName?: string;
+}
+
+// Stakeholder data types
+export interface StakeholderData {
+  role: string;
+  count: number;
+}
+
+export interface InvolvementData {
+  status: string;
+  count: number;
+}

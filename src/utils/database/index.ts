@@ -1,6 +1,7 @@
 
 import { createEnhancedDatabase } from './generators';
 import { getUserActivityStats } from "../mockUserData";
+import { InspectionProcessData, StakeholderData, InvolvementData } from './types';
 
 // Create our lite database singleton
 export const mockDatabase = createEnhancedDatabase();
@@ -11,9 +12,9 @@ export const getDashboardData = () => {
   const traces = Object.values(mockDatabase.traces).slice(0, 20);
   
   // Calculate certification status counts
-  const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
-  const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
-  const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0 };
+  const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
+  const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
+  const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   
   farmers.forEach(farmer => {
     gapcStatus[farmer.gacp]++;
@@ -39,24 +40,29 @@ export const getDashboardData = () => {
   };
 
   // Mock stakeholder data
-  const stakeholdersByRole = {
-    farmers: farmers.length,
-    inspectors: 15,
-    lab_technicians: 8,
-    administrators: 5
-  };
+  const stakeholdersByRole: StakeholderData[] = [
+    { role: "farmers", count: farmers.length },
+    { role: "inspectors", count: 15 },
+    { role: "lab_technicians", count: 8 },
+    { role: "administrators", count: 5 }
+  ];
 
-  const stakeholderInvolvement = {
-    active: Math.floor(farmers.length * 0.7),
-    inactive: Math.floor(farmers.length * 0.3)
-  };
+  const stakeholderInvolvement: InvolvementData[] = [
+    { status: "active", count: Math.floor(farmers.length * 0.7) },
+    { status: "inactive", count: Math.floor(farmers.length * 0.3) }
+  ];
 
-  const recentInspections = allProcesses.slice(0, 5).map(process => ({
+  const recentInspections: InspectionProcessData[] = allProcesses.slice(0, 5).map(process => ({
     id: process.id,
     farmerId: process.farmerId,
+    herbId: process.herbId || "HERB_001",
+    herbName: process.herbName || "Unknown Herb",
     processType: process.processType,
     status: process.status,
-    date: process.startDate
+    startDate: process.startDate,
+    completionDate: process.completionDate,
+    inspectorName: process.inspectorName,
+    farmerName: process.farmerName
   }));
 
   return {
@@ -91,4 +97,4 @@ export const generateTraces = (count: number) => Object.values(mockDatabase.trac
 export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
 
 // Re-export types for convenience
-export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus } from './types';
+export type { EnhancedTrace, EnhancedFarm, ProcessStatus, InspectionProcess, GACPApplication, GACPApplicationStatus, InspectionProcessData, StakeholderData, InvolvementData } from './types';
