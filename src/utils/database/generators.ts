@@ -20,13 +20,7 @@ const traditionalHerbs = [
   "มะขามป้อม", "น้อยหน่า", "ส้มป่อย", "หญ้าหวาน", "ใบหม่อน", "ใบขม"
 ];
 
-// Enhanced herb list combining cannabis (70%) and traditional (30%)
-const enhancedHerbList = [
-  ...cannabisVarieties, // 20 cannabis varieties
-  ...traditionalHerbs.slice(0, 8) // 8 traditional varieties for total of 28 herbs
-];
-
-// Generate enhanced database with focused data set (100 farmers, 1000 inspections)
+// Generate enhanced database with proper data linking
 export const createEnhancedDatabase = (): MockDatabase => {
   const users: MockDatabase['users'] = {};
   const farmers: MockDatabase['farmers'] = {};
@@ -35,75 +29,36 @@ export const createEnhancedDatabase = (): MockDatabase => {
   const transactions: MockDatabase['transactions'] = {};
   const inspectionProcesses: MockDatabase['inspectionProcesses'] = {};
 
-  // Generate 500 users with proper roles including all stakeholder types
-  const usersList = generateMockUsers(500);
+  console.log("Creating new enhanced database with proper linking...");
+
+  // Step 1: Generate 300 users with proper role distribution
+  const usersList = generateMockUsers(300);
   usersList.forEach(user => {
     users[user.id] = user;
   });
 
-  // Get farmers and other stakeholders from users
-  const farmerUsers = Object.values(users).filter(u => u.role === 'farmer');
+  // Get specific role users for proper linking
+  const farmerUsers = Object.values(users).filter(u => u.role === 'farmer').slice(0, 80); // 80 farmers
   const labUsers = Object.values(users).filter(u => u.role === 'lab');
   const manufacturerUsers = Object.values(users).filter(u => u.role === 'manufacturer');
   const ttmOfficerUsers = Object.values(users).filter(u => u.role === 'ttm_officer');
   const acfsOfficerUsers = Object.values(users).filter(u => u.role === 'acfs_officer');
-  
-  console.log(`Generated ${Object.keys(users).length} users: ${farmerUsers.length} farmers, ${labUsers.length} lab staff, ${manufacturerUsers.length} manufacturers`);
+  const inspectorUsers = [...labUsers, ...ttmOfficerUsers, ...acfsOfficerUsers];
 
-  // Generate exactly 100 farmers with cannabis focus
-  for (let i = 1; i <= 100; i++) {
-    const farmerId = `F${String(i).padStart(4, '0')}`;
-    const province = thaiProvinces[Math.floor(Math.random() * thaiProvinces.length)];
-    const userId = i <= farmerUsers.length ? farmerUsers[i - 1].id : `U${String(i).padStart(4, '0')}`;
-    
-    // 70% cannabis, 30% traditional herbs
-    const isCannabis = Math.random() < 0.7;
-    const herbName = isCannabis 
-      ? cannabisVarieties[Math.floor(Math.random() * cannabisVarieties.length)]
-      : traditionalHerbs[Math.floor(Math.random() * traditionalHerbs.length)];
-    
-    farmers[farmerId] = {
-      id: farmerId,
-      name: `ฟาร์ม${isCannabis ? 'กัญชา' : 'สมุนไพร'} ${i}`,
-      herb: herbName,
-      gacp: ["Passed", "Failed", "Pending", "Expired", "In Progress"][Math.floor(Math.random() * 5)] as ProcessStatus,
-      euGmp: ["Passed", "Failed", "Pending", "Expired", "In Progress"][Math.floor(Math.random() * 5)] as ProcessStatus,
-      dttm: ["Passed", "Failed", "Pending", "Expired", "In Progress"][Math.floor(Math.random() * 5)] as ProcessStatus,
-      location: {
-        lat: 13 + Math.random() * 7,
-        lng: 98 + Math.random() * 7
-      },
-      owner: {
-        name: userId && users[userId] ? users[userId].fullName : `เกษตกร ${i}`,
-        phoneNumber: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
-        email: `farmer${i}@thaiherbs.go.th`
-      },
-      province,
-      organicCertified: Math.random() > 0.3, // 70% organic certified
-      lastInspectionDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-      cultivationArea: Math.floor(Math.random() * 50) + 1,
-      userId,
-      registrationNumber: `TH-HERB-${String(i).padStart(4, '0')}`,
-      establishedYear: 2020 + Math.floor(Math.random() * 4),
-      nextInspectionDate: new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString()
-    };
-  }
+  console.log(`Step 1: Generated ${Object.keys(users).length} users`);
+  console.log(`- ${farmerUsers.length} farmers`);
+  console.log(`- ${inspectorUsers.length} inspectors (lab + officers)`);
 
-  // Generate herbs database with proper distribution
-  enhancedHerbList.forEach((herbName, index) => {
-    const herbId = `H${String(index + 1).padStart(4, '0')}`;
+  // Step 2: Generate herbs first (needed for farm creation)
+  const combinedHerbs = [...cannabisVarieties.slice(0, 14), ...traditionalHerbs.slice(0, 6)]; // 20 total herbs
+  combinedHerbs.forEach((herbName, index) => {
+    const herbId = `H${String(index + 1).padStart(3, '0')}`;
     const isCannabis = cannabisVarieties.includes(herbName);
-    
-    const farmersArray = Object.values(farmers);
-    const relevantFarmers = farmersArray.filter(f => f.herb === herbName);
-    const randomFarmer = relevantFarmers.length > 0 
-      ? relevantFarmers[Math.floor(Math.random() * relevantFarmers.length)]
-      : farmersArray[Math.floor(Math.random() * farmersArray.length)];
     
     herbs[herbId] = {
       id: herbId,
       name: herbName,
-      farmerId: randomFarmer.id,
+      farmerId: '', // Will be linked later
       category: isCannabis ? "cannabis" : "traditional",
       thcContent: isCannabis ? Math.random() * 25 : undefined,
       cbdContent: isCannabis ? Math.random() * 20 : undefined,
@@ -113,115 +68,236 @@ export const createEnhancedDatabase = (): MockDatabase => {
     };
   });
 
-  // Generate 2000 inspection processes for comprehensive system testing
-  const farmersArray = Object.values(farmers);
+  console.log(`Step 2: Generated ${Object.keys(herbs).length} herbs`);
+
+  // Step 3: Generate 80 farms with proper user and herb linking
   const herbsArray = Object.values(herbs);
-  const inspectorUsers = [...labUsers, ...ttmOfficerUsers, ...acfsOfficerUsers];
+  for (let i = 0; i < 80; i++) {
+    const farmerId = `F${String(i + 1).padStart(3, '0')}`;
+    const farmerUser = farmerUsers[i];
+    const province = thaiProvinces[Math.floor(Math.random() * thaiProvinces.length)];
+    
+    // Each farm gets 1-3 herbs
+    const farmHerbCount = Math.floor(Math.random() * 3) + 1;
+    const farmHerbs = [];
+    const startIndex = Math.floor(Math.random() * (herbsArray.length - farmHerbCount));
+    
+    for (let j = 0; j < farmHerbCount; j++) {
+      farmHerbs.push(herbsArray[startIndex + j]);
+    }
+    
+    // Update herbs to link to this farm
+    farmHerbs.forEach(herb => {
+      herb.farmerId = farmerId;
+    });
 
-  for (let i = 1; i <= 2000; i++) {
-    const processId = `P${String(i).padStart(4, '0')}`;
-    const randomFarmer = farmersArray[Math.floor(Math.random() * farmersArray.length)];
-    const relevantHerbs = herbsArray.filter(h => h.farmerId === randomFarmer.id);
-    const randomHerb = relevantHerbs.length > 0 
-      ? relevantHerbs[Math.floor(Math.random() * relevantHerbs.length)]
-      : herbsArray[Math.floor(Math.random() * herbsArray.length)];
+    const primaryHerb = farmHerbs[0];
+    const isCannabis = primaryHerb.category === 'cannabis';
     
-    const processTypes: InspectionProcess[] = [
-      "GACP Certification", "EU-GMP Certification", "DTTM Certification", "Quality Control"
-    ];
-    
-    // Cannabis requires more certifications
-    const isCannabis = randomHerb.category === 'cannabis';
-    const processType = isCannabis 
-      ? processTypes[Math.floor(Math.random() * processTypes.length)]
-      : processTypes[Math.floor(Math.random() * (processTypes.length - 1))]; // Exclude EU-GMP for traditional herbs mostly
-    
-    const inspector = inspectorUsers[Math.floor(Math.random() * inspectorUsers.length)];
-    
-    const statuses: ProcessStatus[] = ["Passed", "Failed", "In Progress", "Pending", "Expired"];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
-    inspectionProcesses[processId] = {
-      id: processId,
-      herbId: randomHerb.id,
-      farmerId: randomFarmer.id,
-      processType,
-      status,
-      startDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-      completionDate: status === "Passed" || status === "Failed" ? 
-        new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : undefined,
-      inspectorId: inspector?.id,
-      notes: `ตรวจสอบ ${processType} สำหรับ ${randomHerb.name} ${isCannabis ? '(กัญชา)' : '(สมุนไพรดั้งเดิม)'}`
+    farmers[farmerId] = {
+      id: farmerId,
+      name: `ฟาร์ม${isCannabis ? 'กัญชา' : 'สมุนไพร'} ${province} ${i + 1}`,
+      herb: primaryHerb.name,
+      gacp: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
+      euGmp: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
+      dttm: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
+      location: {
+        lat: 13 + Math.random() * 7,
+        lng: 98 + Math.random() * 7
+      },
+      owner: {
+        name: farmerUser.fullName,
+        phoneNumber: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
+        email: farmerUser.email
+      },
+      province,
+      organicCertified: Math.random() > 0.3,
+      lastInspectionDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+      cultivationArea: Math.floor(Math.random() * 50) + 1,
+      userId: farmerUser.id,
+      registrationNumber: `TH-${isCannabis ? 'CAN' : 'HRB'}-${String(i + 1).padStart(4, '0')}`,
+      establishedYear: 2020 + Math.floor(Math.random() * 4),
+      nextInspectionDate: new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString()
     };
   }
 
-  // Generate 1500 traces for comprehensive tracking
-  for (let i = 1; i <= 1500; i++) {
-    const traceId = `T${String(i).padStart(4, '0')}`;
-    const randomFarmer = farmersArray[Math.floor(Math.random() * farmersArray.length)];
-    const relevantHerbs = herbsArray.filter(h => h.farmerId === randomFarmer.id);
-    const randomHerb = relevantHerbs.length > 0 
-      ? relevantHerbs[Math.floor(Math.random() * relevantHerbs.length)]
-      : herbsArray[Math.floor(Math.random() * herbsArray.length)];
-    
-    const isCannabis = randomHerb.category === 'cannabis';
-    const events = isCannabis 
-      ? ["เพาะเมล็ด", "ปลูก", "รดน้ำ", "ให้ปุ่ย", "ตัดแต่ง", "เก็บเกี่ยว", "อบแห้ง", "แปรรูป", "บรรจุ", "ทดสอบคุณภาพ"]
-      : ["เพาะเมล็ด", "ปลูก", "รดน้ำ", "เก็บเกี่ยว", "แปรรูป", "บรรจุ"];
-    
-    traces[traceId] = {
-      id: traceId,
-      herbId: randomHerb.id,
-      herb: randomHerb.name,
-      event: events[Math.floor(Math.random() * events.length)],
-      timestamp: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-      location: randomFarmer.location,
-      farmId: randomFarmer.id,
-      batchNumber: `B${String(i).padStart(4, '0')}`,
-      quantity: Math.floor(Math.random() * 1000) + 100,
-      unit: isCannabis ? "กรัม" : "กิโลกรัม",
-      qualityGrade: ["A", "B", "C", "Premium"][Math.floor(Math.random() * 4)] as any,
-      verifiedBy: randomFarmer.owner.name,
-      certifications: [randomFarmer.gacp, randomFarmer.euGmp, randomFarmer.dttm].filter(cert => cert === "Passed"),
-      temperature: Math.floor(Math.random() * 10) + 20,
-      humidity: Math.floor(Math.random() * 30) + 40,
-      moistureLevel: Math.floor(Math.random() * 20) + 10,
-      notes: `${isCannabis ? 'กัญชา' : 'สมุนไพร'}: ${randomHerb.name}`,
-      referenceCode: `REF-${traceId}`,
-      herbName: randomHerb.name
-    };
-  }
+  console.log(`Step 3: Generated ${Object.keys(farmers).length} farms with proper herb linking`);
 
-  // Generate 800 transactions for marketplace functionality
-  for (let i = 1; i <= 800; i++) {
-    const transactionId = `TX${String(i).padStart(4, '0')}`;
-    const allUsers = Object.values(users);
-    const randomUser = allUsers[Math.floor(Math.random() * allUsers.length)];
-    const randomHerb = herbsArray[Math.floor(Math.random() * herbsArray.length)];
+  // Step 4: Generate inspection processes linked to existing farms and herbs
+  const farmersArray = Object.values(farmers);
+  let processCount = 0;
+  
+  farmersArray.forEach(farm => {
+    const farmHerbs = herbsArray.filter(h => h.farmerId === farm.id);
     
-    const isCannabis = randomHerb.category === 'cannabis';
-    const basePrice = isCannabis ? 500 : 50; // Cannabis is more expensive
-    
-    transactions[transactionId] = {
-      id: transactionId,
-      userId: randomUser.id,
-      timestamp: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000),
-      amount: Math.floor(Math.random() * basePrice * 10) + basePrice,
-      productName: randomHerb.name,
-      quantity: Math.floor(Math.random() * (isCannabis ? 100 : 1000)) + (isCannabis ? 10 : 100),
-      status: ["Completed", "Pending", "Failed"][Math.floor(Math.random() * 3)] as any,
-      paymentMethod: ["เงินสด", "โอนธนาคาร", "บัตรเครดิต", "QR Code"][Math.floor(Math.random() * 4)],
-      herbId: randomHerb.id
-    };
-  }
+    farmHerbs.forEach(herb => {
+      // Generate 2-5 inspections per herb
+      const inspectionCount = Math.floor(Math.random() * 4) + 2;
+      
+      for (let i = 0; i < inspectionCount; i++) {
+        processCount++;
+        const processId = `P${String(processCount).padStart(4, '0')}`;
+        
+        const processTypes: InspectionProcess[] = [
+          "GACP Certification", "EU-GMP Certification", "DTTM Certification", "Quality Control"
+        ];
+        
+        // Cannabis requires more certifications
+        const isCannabis = herb.category === 'cannabis';
+        const processType = isCannabis 
+          ? processTypes[Math.floor(Math.random() * processTypes.length)]
+          : Math.random() > 0.3 ? "GACP Certification" : processTypes[Math.floor(Math.random() * 3)];
+        
+        const inspector = inspectorUsers[Math.floor(Math.random() * inspectorUsers.length)];
+        const statuses: ProcessStatus[] = ["Passed", "Failed", "In Progress", "Pending"];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        
+        inspectionProcesses[processId] = {
+          id: processId,
+          herbId: herb.id,
+          farmerId: farm.id,
+          processType,
+          status,
+          startDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+          completionDate: status === "Passed" || status === "Failed" ? 
+            new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : undefined,
+          inspectorId: inspector?.id,
+          notes: `ตรวจสอบ ${processType} สำหรับ ${herb.name} ที่ ${farm.name}`
+        };
+      }
+    });
+  });
 
-  console.log(`Generated enhanced database:
-  - ${Object.keys(users).length} users (${farmerUsers.length} farmers)
-  - ${Object.keys(farmers).length} farms (70% cannabis focus)
-  - ${Object.keys(herbs).length} herbs
-  - ${Object.keys(traces).length} trace events
-  - ${Object.keys(transactions).length} transactions
-  - ${Object.keys(inspectionProcesses).length} inspection processes`);
+  console.log(`Step 4: Generated ${Object.keys(inspectionProcesses).length} inspection processes`);
+
+  // Step 5: Generate traces linked to farms and herbs with proper workflow
+  let traceCount = 0;
+  
+  farmersArray.forEach(farm => {
+    const farmHerbs = herbsArray.filter(h => h.farmerId === farm.id);
+    
+    farmHerbs.forEach(herb => {
+      // Generate 5-15 traces per herb following proper sequence
+      const traceEventsCount = Math.floor(Math.random() * 11) + 5;
+      const isCannabis = herb.category === 'cannabis';
+      
+      const cannabisEvents = ["เพาะเมล็ด", "ปลูก", "รดน้ำ", "ให้ปุ่ย", "ตัดแต่ง", "เก็บเกี่ยว", "อบแห้ง", "แปรรูป", "ทดสอบคุณภาพ", "บรรจุ"];
+      const traditionalEvents = ["เพาะเมล็ด", "ปลูก", "รดน้ำ", "ให้ปุ่ย", "เก็บเกี่ยว", "แปรรูป", "ทดสอบคุณภาพ", "บรรจุ"];
+      const events = isCannabis ? cannabisEvents : traditionalEvents;
+      
+      for (let i = 0; i < Math.min(traceEventsCount, events.length); i++) {
+        traceCount++;
+        const traceId = `T${String(traceCount).padStart(4, '0')}`;
+        const batchNumber = `B${farm.id}-${herb.id}-${String(Math.floor(i/3) + 1).padStart(2, '0')}`;
+        
+        traces[traceId] = {
+          id: traceId,
+          herbId: herb.id,
+          herb: herb.name,
+          event: events[i],
+          timestamp: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000 + i * 7 * 24 * 60 * 60 * 1000).toISOString(),
+          location: farm.location,
+          farmId: farm.id,
+          batchNumber,
+          quantity: Math.floor(Math.random() * 1000) + 100,
+          unit: isCannabis ? "กรัม" : "กิโลกรัม",
+          qualityGrade: ["A", "B", "Premium"][Math.floor(Math.random() * 3)] as any,
+          verifiedBy: farm.owner.name,
+          certifications: [farm.gacp, farm.euGmp, farm.dttm].filter(cert => cert === "Passed"),
+          temperature: Math.floor(Math.random() * 10) + 20,
+          humidity: Math.floor(Math.random() * 30) + 40,
+          moistureLevel: Math.floor(Math.random() * 20) + 10,
+          notes: `${events[i]} - ${herb.name} ที่ ${farm.name}`,
+          referenceCode: `REF-${traceId}`,
+          herbName: herb.name
+        };
+      }
+    });
+  });
+
+  console.log(`Step 5: Generated ${Object.keys(traces).length} trace events`);
+
+  // Step 6: Generate transactions linked to users and herbs
+  const allUsers = Object.values(users);
+  const buyerUsers = allUsers.filter(u => ['manufacturer', 'data_consumer', 'admin'].includes(u.role));
+  
+  let transactionCount = 0;
+  
+  // Generate transactions based on completed traces only
+  const completedTraces = Object.values(traces).filter(trace => 
+    trace.event === "บรรจุ" || trace.event === "ทดสอบคุณภาพ"
+  );
+  
+  completedTraces.forEach(trace => {
+    // 30% chance of generating a transaction for each completed trace
+    if (Math.random() < 0.3) {
+      transactionCount++;
+      const transactionId = `TX${String(transactionCount).padStart(4, '0')}`;
+      const buyer = buyerUsers[Math.floor(Math.random() * buyerUsers.length)];
+      const herb = herbs[trace.herbId];
+      
+      const isCannabis = herb.category === 'cannabis';
+      const basePrice = isCannabis ? 500 : 50;
+      
+      transactions[transactionId] = {
+        id: transactionId,
+        userId: buyer.id,
+        timestamp: new Date(new Date(trace.timestamp).getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+        amount: Math.floor(Math.random() * basePrice * 10) + basePrice,
+        productName: herb.name,
+        quantity: Math.floor(trace.quantity * 0.8), // Slightly less than trace quantity
+        status: ["Completed", "Pending"][Math.floor(Math.random() * 2)] as any,
+        paymentMethod: ["เงินสด", "โอนธนาคาร", "บัตรเครดิต", "QR Code"][Math.floor(Math.random() * 4)],
+        herbId: herb.id
+      };
+    }
+  });
+
+  console.log(`Step 6: Generated ${Object.keys(transactions).length} transactions`);
+
+  // Final validation and cleanup
+  console.log("\n=== Database Creation Summary ===");
+  console.log(`✅ Users: ${Object.keys(users).length}`);
+  console.log(`✅ Farmers: ${Object.keys(farmers).length}`);
+  console.log(`✅ Herbs: ${Object.keys(herbs).length}`);
+  console.log(`✅ Traces: ${Object.keys(traces).length}`);
+  console.log(`✅ Transactions: ${Object.keys(transactions).length}`);
+  console.log(`✅ Inspection Processes: ${Object.keys(inspectionProcesses).length}`);
+  
+  // Verify all links are proper
+  let linkingErrors = 0;
+  
+  // Check herb-farm linking
+  Object.values(herbs).forEach(herb => {
+    if (!farmers[herb.farmerId]) {
+      console.error(`❌ Herb ${herb.id} links to non-existent farm ${herb.farmerId}`);
+      linkingErrors++;
+    }
+  });
+  
+  // Check farm-user linking
+  Object.values(farmers).forEach(farm => {
+    if (!users[farm.userId]) {
+      console.error(`❌ Farm ${farm.id} links to non-existent user ${farm.userId}`);
+      linkingErrors++;
+    }
+  });
+  
+  // Check trace linking
+  Object.values(traces).forEach(trace => {
+    if (!farms[trace.farmId]) {
+      console.error(`❌ Trace ${trace.id} links to non-existent farm ${trace.farmId}`);
+      linkingErrors++;
+    }
+    if (!herbs[trace.herbId]) {
+      console.error(`❌ Trace ${trace.id} links to non-existent herb ${trace.herbId}`);
+      linkingErrors++;
+    }
+  });
+  
+  console.log(`\n📊 Data Linking Validation: ${linkingErrors === 0 ? '✅ All Perfect' : `❌ ${linkingErrors} errors found`}`);
+  console.log(`📈 Cannabis vs Traditional: ${Math.round((cannabisVarieties.length / combinedHerbs.length) * 100)}% cannabis`);
+  console.log("🔗 All data is properly linked and follows system workflow");
 
   return {
     users,

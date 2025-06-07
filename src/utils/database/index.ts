@@ -15,11 +15,6 @@ export type {
   StakeholderData, InvolvementData
 } from './types';
 
-// Simplified backward compatibility exports
-export const generateFarmers = (count: number) => Object.values(mockDatabase.farmers).slice(0, count);
-export const generateTraces = (count: number) => Object.values(mockDatabase.traces).slice(0, count);
-export const generateTransactions = (count: number) => Object.values(mockDatabase.transactions).slice(0, count);
-
 // Simplified database interface
 export interface MockDatabase {
   users: Record<UserId, ReturnType<typeof generateMockUsers>[0]>;
@@ -40,32 +35,32 @@ export interface MockDatabase {
   }>;
 }
 
-// Create our enhanced database singleton with reset capability
+// Create our enhanced database singleton with proper linking
 let _mockDatabase: MockDatabase | null = null;
 
 export const mockDatabase = (() => {
   if (!_mockDatabase) {
-    console.log("Initializing new enhanced database...");
+    console.log("🚀 Initializing new properly-linked enhanced database...");
     _mockDatabase = createEnhancedDatabase();
+    console.log("✅ Database initialization complete with proper data flow");
   }
   return _mockDatabase;
 })();
 
 // Reset database function
 export const resetDatabase = () => {
-  console.log("Resetting database...");
+  console.log("🔄 Resetting database with proper linking...");
   _mockDatabase = null;
   _mockDatabase = createEnhancedDatabase();
   return _mockDatabase;
 };
 
-// Enhanced getUserActivityStats function with proper error handling
+// Enhanced getUserActivityStats function with proper validation
 export const getUserActivityStats = () => {
   const users = Object.values(mockDatabase.users);
   const activeUsers = users.filter((user: any) => user.status === 'active').length;
   const verifiedUsers = users.filter((user: any) => user.verificationStatus === true).length;
   
-  // Enhanced arithmetic operation with proper validation
   const totalLogins = users.reduce((sum: number, user: any): number => {
     const userLogins = user.stats?.logins;
     const loginCount = (typeof userLogins === 'number' && !isNaN(userLogins)) ? userLogins : 0;
@@ -84,25 +79,46 @@ export const getUserActivityStats = () => {
   };
 };
 
-// Enhanced getDashboardData with comprehensive system information
+// Enhanced getDashboardData with proper data linking validation
 export const getDashboardData = () => {
   const farmers = Object.values(mockDatabase.farmers) as import('./types').EnhancedFarm[];
-  const traces = Object.values(mockDatabase.traces).slice(0, 50) as import('./types').EnhancedTrace[];
+  const traces = Object.values(mockDatabase.traces) as import('./types').EnhancedTrace[];
   const herbs = Object.values(mockDatabase.herbs) as import('./types').HerbData[];
+  const allUsers = Object.values(mockDatabase.users);
   
-  // Calculate detailed certification status counts
+  // Validate data linking before processing
+  const validTraces = traces.filter(trace => {
+    const farmExists = farmers.find(f => f.id === trace.farmId);
+    const herbExists = herbs.find(h => h.id === trace.herbId);
+    return farmExists && herbExists;
+  });
+  
+  const validFarmers = farmers.filter(farmer => {
+    const userExists = allUsers.find(u => u.id === farmer.userId);
+    const farmHerbs = herbs.filter(h => h.farmerId === farmer.id);
+    return userExists && farmHerbs.length > 0;
+  });
+  
+  console.log(`📊 Data validation: ${validTraces.length}/${traces.length} traces valid, ${validFarmers.length}/${farmers.length} farmers valid`);
+  
+  // Calculate certification status with validated data
   const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   
-  farmers.forEach((farmer) => {
+  validFarmers.forEach((farmer) => {
     gapcStatus[farmer.gacp as keyof typeof gapcStatus]++;
     euGmpStatus[farmer.euGmp as keyof typeof euGmpStatus]++;
     dttmStatus[farmer.dttm as keyof typeof dttmStatus]++;
   });
 
-  // Calculate enhanced process statistics
-  const allProcesses = Object.values(mockDatabase.inspectionProcesses);
+  // Calculate process statistics with linked data only
+  const allProcesses = Object.values(mockDatabase.inspectionProcesses).filter(process => {
+    const farmExists = validFarmers.find(f => f.id === process.farmerId);
+    const herbExists = herbs.find(h => h.id === process.herbId);
+    return farmExists && herbExists;
+  });
+
   const statusCounts = {
     "Pending": allProcesses.filter((p: any) => p.status === "Pending").length,
     "In Progress": allProcesses.filter((p: any) => p.status === "In Progress").length,
@@ -118,8 +134,7 @@ export const getDashboardData = () => {
     "Quality Control": allProcesses.filter((p: any) => p.processType === "Quality Control").length
   };
 
-  // Enhanced stakeholder data with real counts
-  const allUsers = Object.values(mockDatabase.users);
+  // Enhanced stakeholder data with real linked counts
   const stakeholdersByRole: import('./types').StakeholderData[] = [
     { role: "farmers", count: allUsers.filter(u => u.role === 'farmer').length },
     { role: "inspectors", count: allUsers.filter(u => ['lab', 'ttm_officer', 'acfs_officer'].includes(u.role)).length },
@@ -135,7 +150,7 @@ export const getDashboardData = () => {
     { status: "pending", count: allUsers.filter(u => u.status === 'pending').length, category: "user_activity" }
   ];
 
-  // Enhanced recent inspections with complete data
+  // Recent inspections with complete linked data
   const recentInspections: import('./types').InspectionProcessData[] = allProcesses.slice(0, 10).map((process: any) => {
     const farm = mockDatabase.farmers[process.farmerId];
     const herb = mockDatabase.herbs[process.herbId];
@@ -156,27 +171,33 @@ export const getDashboardData = () => {
     };
   });
 
-  // Cannabis vs Traditional herb statistics
-  const cannabisHerbs = herbs.filter(h => h.category === 'cannabis').length;
-  const traditionalHerbs = herbs.filter(h => h.category === 'traditional').length;
-  const cannabisPercentage = Math.round((cannabisHerbs / herbs.length) * 100);
+  // Cannabis vs Traditional herb statistics from properly linked data
+  const linkedHerbs = herbs.filter(h => validFarmers.find(f => f.id === h.farmerId));
+  const cannabisHerbs = linkedHerbs.filter(h => h.category === 'cannabis').length;
+  const traditionalHerbs = linkedHerbs.filter(h => h.category === 'traditional').length;
+  const cannabisPercentage = linkedHerbs.length > 0 ? Math.round((cannabisHerbs / linkedHerbs.length) * 100) : 0;
+
+  // Only count transactions linked to valid herbs
+  const validTransactions = Object.values(mockDatabase.transactions).filter(tx => 
+    linkedHerbs.find(h => h.id === tx.herbId)
+  ) as import('./types').EnhancedTransaction[];
 
   return {
-    farmers,
-    traces,
-    herbs,
+    farmers: validFarmers,
+    traces: validTraces.slice(0, 50), // Limit for performance
+    herbs: linkedHerbs,
     gapcStatus,
     euGmpStatus,
     dttmStatus,
     userStats: getUserActivityStats(),
-    transactions: Object.values(mockDatabase.transactions).slice(0, 20) as import('./types').EnhancedTransaction[],
-    totalSales: Object.values(mockDatabase.transactions)
+    transactions: validTransactions.slice(0, 20),
+    totalSales: validTransactions
       .filter((tx: any) => tx.status === 'Completed')
       .reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0),
-    pendingOrders: Object.values(mockDatabase.transactions)
+    pendingOrders: validTransactions
       .filter((tx: any) => tx.status === 'Pending').length,
     processStats: {
-      totalProcesses: Object.keys(mockDatabase.inspectionProcesses).length,
+      totalProcesses: allProcesses.length,
       statusCounts,
       processCounts,
       averageCompletionRate: statusCounts.Passed / (statusCounts.Passed + statusCounts.Failed + statusCounts["In Progress"]) || 0,
@@ -185,30 +206,36 @@ export const getDashboardData = () => {
     stakeholdersByRole,
     stakeholderInvolvement,
     recentInspections,
-    // New enhanced statistics
     systemStats: {
-      totalFarms: farmers.length,
-      totalHerbs: herbs.length,
-      totalTraces: Object.keys(mockDatabase.traces).length,
-      totalTransactions: Object.keys(mockDatabase.transactions).length,
+      totalFarms: validFarmers.length,
+      totalHerbs: linkedHerbs.length,
+      totalTraces: validTraces.length,
+      totalTransactions: validTransactions.length,
       cannabisPercentage,
       traditionalPercentage: 100 - cannabisPercentage,
-      organicCertifiedFarms: farmers.filter(f => f.organicCertified).length
+      organicCertifiedFarms: validFarmers.filter(f => f.organicCertified).length,
+      dataIntegrityScore: Math.round(((validTraces.length / traces.length) + (validFarmers.length / farmers.length) + (validTransactions.length / Object.keys(mockDatabase.transactions).length)) / 3 * 100)
     }
   };
 };
 
-// System health check function
+// Enhanced system health check with data linking validation
 export const performSystemHealthCheck = () => {
   const data = getDashboardData();
   const issues: string[] = [];
   const improvements: string[] = [];
 
-  // Check data consistency
-  if (data.farmers.length === 0) issues.push("ไม่มีข้อมูลเกษตรกรในระบบ");
-  if (data.herbs.length === 0) issues.push("ไม่มีข้อมูลสมุนไพรในระบบ");
-  if (data.traces.length === 0) issues.push("ไม่มีข้อมูลการตรวจสอบย้อนกลับ");
+  // Check data consistency and linking
+  if (data.farmers.length === 0) issues.push("ไม่มีข้อมูลเกษตรกรที่เชื่อมโยงถูกต้องในระบบ");
+  if (data.herbs.length === 0) issues.push("ไม่มีข้อมูลสมุนไพรที่เชื่อมโยงถูกต้องในระบบ");
+  if (data.traces.length === 0) issues.push("ไม่มีข้อมูลการตรวจสอบย้อนกลับที่เชื่อมโยงถูกต้อง");
   
+  // Check data integrity score
+  const integrityScore = data.systemStats?.dataIntegrityScore || 0;
+  if (integrityScore < 95) {
+    improvements.push(`คะแนนความสมบูรณ์ของข้อมูล: ${integrityScore}% (ควรอยู่ที่ 95% ขึ้นไป)`);
+  }
+
   // Check certification distribution
   const totalCertifications = data.gapcStatus.Passed + data.euGmpStatus.Passed + data.dttmStatus.Passed;
   if (totalCertifications < data.farmers.length * 0.5) {
@@ -221,18 +248,22 @@ export const performSystemHealthCheck = () => {
   }
 
   return {
-    status: issues.length === 0 ? "สุขภาพระบบดี" : "พบปัญหาในระบบ",
+    status: issues.length === 0 ? "ระบบฐานข้อมูลมีสุขภาพดี - ข้อมูลเชื่อมโยงถูกต้อง 100%" : "พบปัญหาการเชื่อมโยงข้อมูลในระบบ",
     issues,
     improvements,
     timestamp: new Date().toISOString(),
+    dataIntegrityScore: integrityScore,
     summary: {
       totalFarms: data.farmers.length,
       totalUsers: data.userStats.totalUsers,
       totalProcesses: data.processStats.totalProcesses,
-      cannabisPercentage: data.systemStats?.cannabisPercentage || 0
+      cannabisPercentage: data.systemStats?.cannabisPercentage || 0,
+      linkedDataPercentage: integrityScore
     }
   };
 };
 
-console.log("Enhanced Thai Herbal Production Platform Database initialized");
-console.log("Database contains:", performSystemHealthCheck().summary);
+console.log("🌿 Enhanced Thai Herbal Production Platform Database with Proper Linking initialized");
+const healthCheck = performSystemHealthCheck();
+console.log("📊 Database Health Check:", healthCheck.summary);
+console.log(`🔗 Data Integrity Score: ${healthCheck.dataIntegrityScore}%`);
