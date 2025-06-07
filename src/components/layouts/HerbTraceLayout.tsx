@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface HerbTraceLayoutProps {
   children: React.ReactNode;
-  activeTab?: "dashboard" | "herbs" | "trace" | "certification" | "map" | "settings" | "marketplace" | "overview";
+  activeTab?: PageType;
 }
 
 export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayoutProps) {
@@ -19,38 +19,45 @@ export default function HerbTraceLayout({ children, activeTab }: HerbTraceLayout
   const { toast } = useToast();
   const { isLoading, canView } = useRoleAccess();
 
-  const getPageType = (): PageType => {
-    switch (activeTab) {
-      case "dashboard": return "dashboard";
-      case "herbs": return "herbs";
-      case "trace": return "trace";
-      case "certification": return "certification";
-      case "map": return "map";
-      case "settings": return "settings";
-      case "marketplace": return "marketplace";
-      case "overview": return "overview";
-      default: return "dashboard";
-    }
-  };
-
   const getTabTitle = () => {
     switch (activeTab) {
       case "dashboard": return "Dashboard";
       case "herbs": return "Herbs Catalog";
       case "trace": return "Traceability";
       case "certification": return "Certifications";
+      case "inspection": return "Inspection";
       case "map": return "Map View";
       case "settings": return "Settings";
       case "marketplace": return "Marketplace";
       case "overview": return "Overview";
+      case "seed-to-sale": return "Seed to Sale";
+      case "farms": return "Farm Management";
+      case "activities": return "Activities";
+      case "harvest": return "Harvest";
+      case "weather": return "Weather";
+      case "licenses": return "Licenses";
+      case "lab_samples": return "Lab Samples";
+      case "lab_testing": return "Lab Testing";
+      case "lab_materials": return "Lab Materials";
+      case "procurement": return "Procurement";
+      case "production": return "Production";
+      case "inventory": return "Inventory";
+      case "logistics": return "Logistics";
+      case "qrcode": return "QR Code";
+      case "b2b": return "B2B Market";
+      case "contracts": return "Contracts";
+      case "reports": return "Reports";
+      case "exports": return "Exports";
+      case "learning": return "Learning";
+      case "users": return "User Management";
+      case "support": return "Support";
       default: return "HerbTrace";
     }
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      const pageType = getPageType();
-      if (!canView(pageType)) {
+    if (!isLoading && activeTab) {
+      if (!canView(activeTab)) {
         toast({
           variant: "destructive",
           title: "Access Denied",

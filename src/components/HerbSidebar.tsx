@@ -29,7 +29,7 @@ import {
   Cloud,
   FlaskConical,
   Info,
-  Seedling,
+  Sprout,
   TestTube,
   ArrowRightLeft
 } from 'lucide-react';
@@ -138,7 +138,7 @@ export default function HerbSidebar({
     { 
       id: 'seed-to-sale', 
       label: 'Seed to Sale', 
-      icon: Seedling, 
+      icon: Sprout, 
       path: '/herb-trace/seed-to-sale',
       section: 'tracking'
     },

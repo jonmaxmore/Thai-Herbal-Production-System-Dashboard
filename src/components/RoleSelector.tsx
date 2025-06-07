@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { RoleAccess } from "@/hooks/use-role-access";
 
 // Define the possible roles
 export enum UserRole {
@@ -25,109 +25,6 @@ export enum UserRole {
   DATA_CONSUMER = "data_consumer",
   GUEST = "guest",
 }
-
-// When setting up access rights for a role, we need to ensure all PageType properties are defined
-const setupRoleAccess = (role: UserRole): RoleAccess => {
-  // Default access - view only for dashboard
-  const baseAccess: RoleAccess = {
-    dashboard: { view: true, edit: false, approve: false },
-    herbs: { view: false, edit: false, approve: false },
-    trace: { view: false, edit: false, approve: false },
-    certification: { view: false, edit: false, approve: false },
-    map: { view: false, edit: false, approve: false },
-    settings: { view: false, edit: false, approve: false },
-    marketplace: { view: false, edit: false, approve: false },
-    // Initialize all new page types
-    farms: { view: false, edit: false, approve: false },
-    activities: { view: false, edit: false, approve: false },
-    harvest: { view: false, edit: false, approve: false },
-    weather: { view: false, edit: false, approve: false },
-    reports: { view: false, edit: false, approve: false },
-    learning: { view: false, edit: false, approve: false },
-    policy: { view: false, edit: false, approve: false },
-    licenses: { view: false, edit: false, approve: false },
-    inspection: { view: false, edit: false, approve: false },
-    training: { view: false, edit: false, approve: false },
-    lab_samples: { view: false, edit: false, approve: false },
-    lab_testing: { view: false, edit: false, approve: false },
-    lab_materials: { view: false, edit: false, approve: false },
-    procurement: { view: false, edit: false, approve: false },
-    production: { view: false, edit: false, approve: false },
-    inventory: { view: false, edit: false, approve: false },
-    logistics: { view: false, edit: false, approve: false },
-    qrcode: { view: false, edit: false, approve: false },
-    users: { view: false, edit: false, approve: false },
-    content: { view: false, edit: false, approve: false },
-    marketing: { view: false, edit: false, approve: false },
-    support: { view: false, edit: false, approve: false },
-    data_catalog: { view: false, edit: false, approve: false },
-    api: { view: false, edit: false, approve: false },
-    exports: { view: false, edit: false, approve: false },
-    tariffs: { view: false, edit: false, approve: false },
-    regulations: { view: false, edit: false, approve: false },
-    b2b: { view: false, edit: false, approve: false },
-    contracts: { view: false, edit: false, approve: false }
-  };
-
-  // Now set up role-specific access permissions
-  switch (role) {
-    case UserRole.FARMER:
-      baseAccess.herbs = { view: true, edit: true, approve: false };
-      baseAccess.trace = { view: true, edit: true, approve: false };
-      baseAccess.certification = { view: true, edit: false, approve: false };
-      baseAccess.map = { view: true, edit: false, approve: false };
-      baseAccess.marketplace = { view: true, edit: true, approve: false };
-      break;
-    case UserRole.LAB:
-      baseAccess.lab_samples = { view: true, edit: true, approve: true };
-      baseAccess.lab_testing = { view: true, edit: true, approve: true };
-      baseAccess.lab_materials = { view: true, edit: true, approve: true };
-      break;
-    case UserRole.MANUFACTURER:
-      baseAccess.production = { view: true, edit: true, approve: true };
-      baseAccess.inventory = { view: true, edit: true, approve: true };
-      baseAccess.logistics = { view: true, edit: true, approve: true };
-      break;
-    case UserRole.TTM_OFFICER:
-      baseAccess.policy = { view: true, edit: true, approve: true };
-      baseAccess.licenses = { view: true, edit: true, approve: true };
-      baseAccess.training = { view: true, edit: true, approve: true };
-      break;
-    case UserRole.ACFS_OFFICER:
-      baseAccess.farms = { view: true, edit: true, approve: true };
-      baseAccess.activities = { view: true, edit: true, approve: true };
-      baseAccess.harvest = { view: true, edit: true, approve: true };
-      break;
-    case UserRole.CUSTOMS_OFFICER:
-      baseAccess.exports = { view: true, edit: true, approve: true };
-      baseAccess.tariffs = { view: true, edit: true, approve: true };
-      baseAccess.regulations = { view: true, edit: true, approve: true };
-      break;
-    case UserRole.ADMIN:
-      Object.keys(baseAccess).forEach((key) => {
-        baseAccess[key as keyof RoleAccess] = { view: true, edit: true, approve: true };
-      });
-      break;
-    case UserRole.DATA_CONSUMER:
-      baseAccess.data_catalog = { view: true, edit: false, approve: false };
-      baseAccess.api = { view: true, edit: false, approve: false };
-      break;
-    case UserRole.GUEST:
-      // Guest has no access to anything except the marketplace
-      Object.keys(baseAccess).forEach((key) => {
-        if (key !== "marketplace") {
-          baseAccess[key as keyof RoleAccess] = { view: false, edit: false, approve: false };
-        } else {
-          baseAccess.marketplace = { view: true, edit: false, approve: false };
-        }
-      });
-      break;
-    default:
-      break;
-  }
-
-  return baseAccess;
-};
 
 // Role details
 const roleDetails = {
@@ -232,10 +129,8 @@ const RoleSelector: React.FC = () => {
       return;
     }
 
-    // Set the selected role and access rights in localStorage
+    // Set the selected role in localStorage
     localStorage.setItem("userRole", selectedRole);
-    const accessRights = setupRoleAccess(selectedRole);
-    localStorage.setItem("roleAccess", JSON.stringify(accessRights));
 
     toast({
       title: "Success",
