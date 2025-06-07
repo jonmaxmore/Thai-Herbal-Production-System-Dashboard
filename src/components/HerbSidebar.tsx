@@ -28,7 +28,10 @@ import {
   QrCode,
   Cloud,
   FlaskConical,
-  Info
+  Info,
+  Seedling,
+  TestTube,
+  ArrowRightLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -66,6 +69,7 @@ export default function HerbSidebar({
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
     main: true,
     farm: false,
+    tracking: true,
     certification: false,
     lab: false,
     market: false,
@@ -94,6 +98,7 @@ export default function HerbSidebar({
       path: '/herb-trace/dashboard', 
       section: 'main' 
     },
+    
     { 
       id: 'farms', 
       label: 'จัดการแปลงปลูก', 
@@ -128,15 +133,28 @@ export default function HerbSidebar({
       label: 'สมุนไพร', 
       icon: Leaf, 
       path: '/herb-trace/herbs',
-      section: 'main'
+      section: 'tracking'
     },
-    
+    { 
+      id: 'seed-to-sale', 
+      label: 'Seed to Sale', 
+      icon: Seedling, 
+      path: '/herb-trace/seed-to-sale',
+      section: 'tracking'
+    },
     { 
       id: 'trace', 
       label: 'ตรวจสอบย้อนกลับ', 
       icon: Search, 
       path: '/herb-trace/trace',
-      section: 'main'
+      section: 'tracking'
+    },
+    { 
+      id: 'qrcode', 
+      label: 'QR Code', 
+      icon: QrCode, 
+      path: '/herb-trace/qrcode', 
+      section: 'tracking' 
     },
     
     { 
@@ -171,7 +189,7 @@ export default function HerbSidebar({
     { 
       id: 'lab_testing', 
       label: 'ผลการวิเคราะห์', 
-      icon: FileText, 
+      icon: TestTube, 
       path: '/herb-trace/lab/testing', 
       section: 'lab' 
     },
@@ -220,24 +238,16 @@ export default function HerbSidebar({
       section: 'market' 
     },
     { 
-      id: 'qrcode', 
-      label: 'QR Code', 
-      icon: QrCode, 
-      path: '/herb-trace/qrcode', 
-      section: 'market' 
-    },
-    
-    { 
       id: 'marketplace', 
       label: 'ตลาดกลาง', 
       icon: ShoppingCart, 
       path: '/herb-trace/marketplace',
-      section: 'main'
+      section: 'market'
     },
     { 
       id: 'b2b', 
       label: 'ตลาด B2B', 
-      icon: Users, 
+      icon: ArrowRightLeft, 
       path: '/herb-trace/b2b', 
       section: 'market' 
     },
@@ -297,6 +307,7 @@ export default function HerbSidebar({
 
   const sections = [
     { id: 'farm', label: 'การเพาะปลูก', icon: Leaf },
+    { id: 'tracking', label: 'การติดตามสินค้า', icon: Search },
     { id: 'certification', label: 'การรับรอง', icon: Shield },
     { id: 'lab', label: 'ห้องปฏิบัติการ', icon: FlaskConical },
     { id: 'market', label: 'การผลิตและตลาด', icon: ShoppingCart },

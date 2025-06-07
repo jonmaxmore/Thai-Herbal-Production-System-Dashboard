@@ -13,6 +13,8 @@ import Marketplace from "./pages/herb-trace/Marketplace";
 import PlatformOverview from "./pages/herb-trace/PlatformOverview";
 import GACPApplications from "./pages/herb-trace/GACPApplications";
 import UserManagement from "./pages/herb-trace/UserManagement";
+import InspectionView from "./pages/herb-trace/InspectionView";
+import SeedToSaleView from "./pages/herb-trace/SeedToSaleView";
 import RoleSelector from "./components/RoleSelector";
 
 import { Toaster } from "./components/ui/toaster";
@@ -28,6 +30,8 @@ function App() {
         <Route path="/herb-trace/herbs" element={<HerbCatalog />} />
         <Route path="/herb-trace/trace" element={<TraceabilityView />} />
         <Route path="/herb-trace/certification" element={<CertificationView />} />
+        <Route path="/herb-trace/inspection" element={<InspectionView />} />
+        <Route path="/herb-trace/seed-to-sale" element={<SeedToSaleView />} />
         <Route path="/herb-trace/gacp-applications" element={<GACPApplications />} />
         <Route path="/herb-trace/map" element={<MapView />} />
         <Route path="/herb-trace/settings" element={<SettingsView />} />
