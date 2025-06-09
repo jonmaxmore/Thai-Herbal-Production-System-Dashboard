@@ -9,11 +9,14 @@ export type CertificationId = string;
 // Simplified process status
 export type ProcessStatus = "Pending" | "In Progress" | "Passed" | "Failed" | "Expired";
 
-// Core inspection processes only
-export type InspectionProcess = "GACP Certification" | "EU-GMP Certification" | "DTTM Certification" | "Quality Control";
+// Core inspection processes - GACP is primary, others are optional
+export type InspectionProcess = "GACP Certification" | "EU-GMP Certification" | "DTTM Certification" | "TIS Certification" | "Quality Control";
 
-// GACP Application Status
+// GACP Application Status - Primary certification workflow
 export type GACPApplicationStatus = "Draft" | "Submitted" | "Under Review" | "Pre-Approved" | "Rejected" | "Site Inspection Scheduled" | "Site Inspection Complete" | "Approved" | "Certificate Issued";
+
+// Optional certification status - simpler workflow
+export type OptionalCertificationStatus = "Not Applied" | "Applied" | "Approved" | "Rejected" | "Expired";
 
 // Marketplace transaction type (added to fix missing type error)
 export interface MarketplaceTransaction {
@@ -100,15 +103,35 @@ export interface HerbData {
   properties: string[];
 }
 
-// Simplified Farm type
+// Updated Farm type with GACP as primary and others as optional
 export interface EnhancedFarm {
   id: string;
   name: string;
   herb: string;
   userId: UserId;
+  // Primary certification (required)
   gacp: ProcessStatus;
-  euGmp: ProcessStatus;
-  dttm: ProcessStatus;
+  gacpCertificateNumber?: string;
+  gacpExpiryDate?: string;
+  
+  // Optional certifications (can be farmer-entered or API-integrated)
+  optionalCertifications?: {
+    euGmp?: OptionalCertificationStatus;
+    euGmpCertificateNumber?: string;
+    euGmpExpiryDate?: string;
+    euGmpSource?: "farmer_entered" | "ministry_api";
+    
+    dttm?: OptionalCertificationStatus;
+    dttmCertificateNumber?: string;
+    dttmExpiryDate?: string;
+    dttmSource?: "farmer_entered" | "ministry_api";
+    
+    tis?: OptionalCertificationStatus;
+    tisCertificateNumber?: string;
+    tisExpiryDate?: string;
+    tisSource?: "farmer_entered" | "ministry_api";
+  };
+  
   location: {
     lat: number;
     lng: number;
@@ -170,7 +193,7 @@ export interface EnhancedTransaction {
   herbId: HerbId;
 }
 
-// GACP Application Interface
+// GACP Application Interface - Primary certification workflow
 export interface GACPApplication {
   id: string;
   farmerId: FarmerId;
@@ -213,6 +236,25 @@ export interface GACPApplication {
   };
 }
 
+// Optional Certification Application - Simplified workflow for optional certs
+export interface OptionalCertificationApplication {
+  id: string;
+  farmerId: FarmerId;
+  certificationType: "EU-GMP" | "DTTM" | "TIS";
+  status: OptionalCertificationStatus;
+  submittedDate?: Date;
+  source: "farmer_entered" | "ministry_api";
+  certificateNumber?: string;
+  issueDate?: Date;
+  expiryDate?: Date;
+  documentFile?: string;
+  apiSyncData?: {
+    lastSyncDate: Date;
+    ministryApiEndpoint: string;
+    syncStatus: "success" | "failed" | "pending";
+  };
+}
+
 // Add inspection process interface with all required properties
 export interface InspectionProcessData {
   id: string;
@@ -225,6 +267,7 @@ export interface InspectionProcessData {
   completionDate?: Date;
   inspectorName?: string;
   farmerName?: string;
+  isPrimary?: boolean; // True for GACP, false for optional certs
 }
 
 // Stakeholder data types
