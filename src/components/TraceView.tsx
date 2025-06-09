@@ -256,12 +256,12 @@ const TraceView: React.FC<TraceViewProps> = ({ traces, searchTerm, setSearchTerm
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">EU-GMP:</div>
-                                          <StatusBadge status={selectedFarm.euGmp} />
+                                          <StatusBadge status={selectedFarm.optionalCertifications?.euGmp || 'Not Applied'} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                           <div className="font-medium">กรมแพทย์แผนไทยฯ:</div>
-                                          <StatusBadge status={selectedFarm.dttm} />
+                                          <StatusBadge status={selectedFarm.optionalCertifications?.dttm || 'Not Applied'} />
                                         </div>
                                         <Separator />
                                         <div className="flex items-center justify-between">
