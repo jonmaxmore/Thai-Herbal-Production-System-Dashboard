@@ -14,8 +14,23 @@ export class AnalyticsService {
     
     farms.forEach(farm => {
       gapcStats[farm.gacp as keyof typeof gapcStats]++;
-      euGmpStats[farm.euGmp as keyof typeof euGmpStats]++;
-      dttmStats[farm.dttm as keyof typeof dttmStats]++;
+      
+      // Convert OptionalCertificationStatus to ProcessStatus for counting
+      const mapOptionalToProcess = (status: string | undefined) => {
+        switch (status) {
+          case "Approved": return "Passed";
+          case "Rejected": return "Failed";
+          case "Applied": return "Pending";
+          case "Not Applied": return "Pending";
+          default: return "Pending";
+        }
+      };
+      
+      const euGmpStatus = mapOptionalToProcess(farm.optionalCertifications?.euGmp);
+      const dttmStatus = mapOptionalToProcess(farm.optionalCertifications?.dttm);
+      
+      euGmpStats[euGmpStatus as keyof typeof euGmpStats]++;
+      dttmStats[dttmStatus as keyof typeof dttmStats]++;
     });
 
     // Calculate certification rates

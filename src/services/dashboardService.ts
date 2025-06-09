@@ -1,4 +1,3 @@
-
 // Shared Analytics Dashboard Service for Cross-Department Insights
 import { mockDatabase } from '@/utils/database';
 import { notificationService } from './notificationService';
@@ -229,8 +228,23 @@ class DashboardService {
 
     farms.forEach(farm => {
       distribution.gacp[farm.gacp.toLowerCase() as keyof typeof distribution.gacp]++;
-      distribution.euGmp[farm.euGmp.toLowerCase() as keyof typeof distribution.euGmp]++;
-      distribution.dttm[farm.dttm.toLowerCase() as keyof typeof distribution.dttm]++;
+      
+      // Convert OptionalCertificationStatus to ProcessStatus for distribution
+      const mapOptionalToProcess = (status: string | undefined) => {
+        switch (status) {
+          case "Approved": return "passed";
+          case "Rejected": return "failed";
+          case "Applied": return "pending";
+          case "Not Applied": return "pending";
+          default: return "pending";
+        }
+      };
+      
+      const euGmpStatus = mapOptionalToProcess(farm.optionalCertifications?.euGmp);
+      const dttmStatus = mapOptionalToProcess(farm.optionalCertifications?.dttm);
+      
+      distribution.euGmp[euGmpStatus as keyof typeof distribution.euGmp]++;
+      distribution.dttm[dttmStatus as keyof typeof distribution.dttm]++;
     });
 
     return distribution;
@@ -286,7 +300,16 @@ class DashboardService {
 
   private getCertificationTrend(type: 'gacp' | 'euGmp' | 'dttm') {
     const farms = Object.values(mockDatabase.farmers);
-    const passedCount = farms.filter(farm => farm[type] === 'Passed').length;
+    let passedCount = 0;
+    
+    if (type === 'gacp') {
+      passedCount = farms.filter(farm => farm.gacp === 'Passed').length;
+    } else if (type === 'euGmp') {
+      passedCount = farms.filter(farm => farm.optionalCertifications?.euGmp === 'Approved').length;
+    } else if (type === 'dttm') {
+      passedCount = farms.filter(farm => farm.optionalCertifications?.dttm === 'Approved').length;
+    }
+    
     return {
       current: passedCount,
       total: farms.length,
