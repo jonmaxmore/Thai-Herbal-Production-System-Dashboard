@@ -285,7 +285,7 @@ export const createEnhancedDatabase = (): MockDatabase => {
   
   // Check trace linking
   Object.values(traces).forEach(trace => {
-    if (!farms[trace.farmId]) {
+    if (!farmers[trace.farmId]) {
       console.error(`❌ Trace ${trace.id} links to non-existent farm ${trace.farmId}`);
       linkingErrors++;
     }
