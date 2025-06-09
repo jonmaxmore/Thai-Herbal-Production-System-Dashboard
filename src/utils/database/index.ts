@@ -101,15 +101,34 @@ export const getDashboardData = () => {
   
   console.log(`📊 Data validation: ${validTraces.length}/${traces.length} traces valid, ${validFarmers.length}/${farmers.length} farmers valid`);
   
-  // Calculate certification status with validated data
+  // Calculate certification status with validated data using new structure
   const gapcStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const euGmpStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   const dttmStatus = { "Passed": 0, "Failed": 0, "Pending": 0, "Expired": 0, "In Progress": 0 };
   
   validFarmers.forEach((farmer) => {
     gapcStatus[farmer.gacp as keyof typeof gapcStatus]++;
-    euGmpStatus[farmer.euGmp as keyof typeof euGmpStatus]++;
-    dttmStatus[farmer.dttm as keyof typeof dttmStatus]++;
+    
+    // Map optional certification statuses to ProcessStatus
+    const euGmpCert = farmer.optionalCertifications?.euGmp;
+    const dttmCert = farmer.optionalCertifications?.dttm;
+    
+    // Convert OptionalCertificationStatus to ProcessStatus for dashboard display
+    const mapOptionalToProcess = (status: string | undefined) => {
+      switch (status) {
+        case "Approved": return "Passed";
+        case "Rejected": return "Failed";
+        case "Applied": return "Pending";
+        case "Not Applied": return "Pending";
+        default: return "Pending";
+      }
+    };
+    
+    const mappedEuGmp = mapOptionalToProcess(euGmpCert);
+    const mappedDttm = mapOptionalToProcess(dttmCert);
+    
+    euGmpStatus[mappedEuGmp as keyof typeof euGmpStatus]++;
+    dttmStatus[mappedDttm as keyof typeof dttmStatus]++;
   });
 
   // Calculate process statistics with linked data only
@@ -131,6 +150,7 @@ export const getDashboardData = () => {
     "GACP Certification": allProcesses.filter((p: any) => p.processType === "GACP Certification").length,
     "EU-GMP Certification": allProcesses.filter((p: any) => p.processType === "EU-GMP Certification").length,
     "DTTM Certification": allProcesses.filter((p: any) => p.processType === "DTTM Certification").length,
+    "TIS Certification": allProcesses.filter((p: any) => p.processType === "TIS Certification").length,
     "Quality Control": allProcesses.filter((p: any) => p.processType === "Quality Control").length
   };
 

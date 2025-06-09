@@ -1,6 +1,6 @@
 
 import { MockDatabase, EnhancedFarm, HerbData, EnhancedTrace, EnhancedTransaction } from './databaseInterface';
-import { ProcessStatus, InspectionProcess } from './types';
+import { ProcessStatus, InspectionProcess, OptionalCertificationStatus } from './types';
 import { thaiProvinces } from './constants';
 import { generateMockUsers } from "../mockUserData";
 
@@ -94,13 +94,33 @@ export const createEnhancedDatabase = (): MockDatabase => {
     const primaryHerb = farmHerbs[0];
     const isCannabis = primaryHerb.category === 'cannabis';
     
+    // Generate optional certification statuses
+    const optionalCertificationStatuses: OptionalCertificationStatus[] = ["Not Applied", "Applied", "Approved", "Rejected"];
+    
     farmers[farmerId] = {
       id: farmerId,
       name: `ฟาร์ม${isCannabis ? 'กัญชา' : 'สมุนไพร'} ${province} ${i + 1}`,
       herb: primaryHerb.name,
       gacp: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
-      euGmp: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
-      dttm: ["Passed", "Failed", "Pending", "In Progress"][Math.floor(Math.random() * 4)] as ProcessStatus,
+      
+      // Optional certifications structure
+      optionalCertifications: {
+        euGmp: optionalCertificationStatuses[Math.floor(Math.random() * optionalCertificationStatuses.length)],
+        euGmpCertificateNumber: Math.random() > 0.5 ? `EU-GMP-${String(i + 1).padStart(4, '0')}` : undefined,
+        euGmpExpiryDate: Math.random() > 0.5 ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+        euGmpSource: Math.random() > 0.5 ? "ministry_api" : "farmer_entered",
+        
+        dttm: optionalCertificationStatuses[Math.floor(Math.random() * optionalCertificationStatuses.length)],
+        dttmCertificateNumber: Math.random() > 0.5 ? `DTTM-${String(i + 1).padStart(4, '0')}` : undefined,
+        dttmExpiryDate: Math.random() > 0.5 ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+        dttmSource: Math.random() > 0.5 ? "ministry_api" : "farmer_entered",
+        
+        tis: optionalCertificationStatuses[Math.floor(Math.random() * optionalCertificationStatuses.length)],
+        tisCertificateNumber: Math.random() > 0.5 ? `TIS-${String(i + 1).padStart(4, '0')}` : undefined,
+        tisExpiryDate: Math.random() > 0.5 ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+        tisSource: Math.random() > 0.5 ? "ministry_api" : "farmer_entered"
+      },
+      
       location: {
         lat: 13 + Math.random() * 7,
         lng: 98 + Math.random() * 7
@@ -139,14 +159,14 @@ export const createEnhancedDatabase = (): MockDatabase => {
         const processId = `P${String(processCount).padStart(4, '0')}`;
         
         const processTypes: InspectionProcess[] = [
-          "GACP Certification", "EU-GMP Certification", "DTTM Certification", "Quality Control"
+          "GACP Certification", "EU-GMP Certification", "DTTM Certification", "TIS Certification", "Quality Control"
         ];
         
         // Cannabis requires more certifications
         const isCannabis = herb.category === 'cannabis';
         const processType = isCannabis 
           ? processTypes[Math.floor(Math.random() * processTypes.length)]
-          : Math.random() > 0.3 ? "GACP Certification" : processTypes[Math.floor(Math.random() * 3)];
+          : Math.random() > 0.3 ? "GACP Certification" : processTypes[Math.floor(Math.random() * 4)];
         
         const inspector = inspectorUsers[Math.floor(Math.random() * inspectorUsers.length)];
         const statuses: ProcessStatus[] = ["Passed", "Failed", "In Progress", "Pending"];
@@ -190,6 +210,13 @@ export const createEnhancedDatabase = (): MockDatabase => {
         const traceId = `T${String(traceCount).padStart(4, '0')}`;
         const batchNumber = `B${farm.id}-${herb.id}-${String(Math.floor(i/3) + 1).padStart(2, '0')}`;
         
+        // Build certifications array based on farm's certification status
+        const certifications = [];
+        if (farm.gacp === "Passed") certifications.push("GACP");
+        if (farm.optionalCertifications?.euGmp === "Approved") certifications.push("EU-GMP");
+        if (farm.optionalCertifications?.dttm === "Approved") certifications.push("DTTM");
+        if (farm.optionalCertifications?.tis === "Approved") certifications.push("TIS");
+        
         traces[traceId] = {
           id: traceId,
           herbId: herb.id,
@@ -203,7 +230,7 @@ export const createEnhancedDatabase = (): MockDatabase => {
           unit: isCannabis ? "กรัม" : "กิโลกรัม",
           qualityGrade: ["A", "B", "Premium"][Math.floor(Math.random() * 3)] as any,
           verifiedBy: farm.owner.name,
-          certifications: [farm.gacp, farm.euGmp, farm.dttm].filter(cert => cert === "Passed"),
+          certifications,
           temperature: Math.floor(Math.random() * 10) + 20,
           humidity: Math.floor(Math.random() * 30) + 40,
           moistureLevel: Math.floor(Math.random() * 20) + 10,
